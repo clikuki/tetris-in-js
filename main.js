@@ -61,7 +61,7 @@ class CurrentTetromino
 		const newType = Math.floor(Math.random() * tetrominoShapes.length);
 		const indices = tetrominoShapes[newType][0];
 		const width = Math.max(...indices.map(([i]) => i));
-		const height = Math.max(...indices.map(([, j]) => j));;
+		const height = Math.max(...indices.map(([, j]) => j));
 		this.type = newType;
 		this.rotation = 0;
 		this.y = -height;
@@ -88,6 +88,21 @@ class CurrentTetromino
 	// {
 
 	// }
+	rotate(direction)
+	{
+		if (Math.abs(direction) !== 1) return 'Invalid direction';
+		const numOfRotationsTypes = tetrominoShapes[this.type].length;
+		this.rotation = (this.rotation + direction + numOfRotationsTypes) % numOfRotationsTypes;
+		const indices = tetrominoShapes[this.type][this.rotation];
+		const width = Math.max(...indices.map(([i]) => i));
+		const height = Math.max(...indices.map(([, j]) => j));
+		this.w = width;
+		this.h = height;
+		if (this.x + width >= gridWidth - 1)
+		{
+			this.x = gridWidth - 1 - width;
+		}
+	}
 	addToGrid()
 	{
 		tetrominoShapes[this.type][this.rotation].forEach(([i, j]) =>
@@ -119,6 +134,8 @@ function loop(t)
 			if (e) cancelAnimationFrame(handler);
 		}
 		else curTetromino.y++;
+		if ((heldKeys.Enter || heldKeys.r)) curTetromino.rotate(1);
+		// if (((heldKeys.Enter && heldKeys.Shift) || heldKeys.R)) curTetromino.rotate(-1);
 	}
 
 	if (fpsElapsed > fpsInterval || t === undefined)
