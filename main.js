@@ -69,7 +69,7 @@ class CurrentTetromino
 		this.w = width;
 		this.h = height;
 	}
-	bottomHasCollided()
+	bottomIsColliding()
 	{
 		const indices = tetrominoShapes[this.type][this.rotation];
 		const yIndices = indices.map(([, j]) => j + this.y);
@@ -84,10 +84,25 @@ class CurrentTetromino
 			if (typeof blockBelowBlock === 'number') return true;
 		})) return true;
 	}
-	// sidesHaveCollided()
-	// {
-
-	// }
+	sidesAreColliding()
+	{
+		const colliding = [false, false];
+		const indices = tetrominoShapes[this.type][this.rotation];
+		indices.forEach(([i, j]) =>
+		{
+			const x = i + this.x;
+			const y = j + this.y;
+			if (y < 0) return;
+			const currentRow = grid[y];
+			const blockToLeft = currentRow[x - 1];
+			const blockToRight = currentRow[x + 1];
+			if (typeof blockToLeft === 'number') colliding[0] = true;
+			if (typeof blockToRight === 'number') colliding[1] = true;
+		})
+		if (this.x <= 0) colliding[0] = true;
+		if (this.x + this.w >= gridWidth - 1) colliding[1] = true;
+		return colliding;
+	}
 	rotate(direction)
 	{
 		if (Math.abs(direction) !== 1) return 'Invalid direction';
@@ -127,7 +142,7 @@ function loop(t)
 	if (fallElapsed > fallInterval || t === undefined)
 	{
 		if (t !== undefined) fallThen = t - (fallElapsed % fallInterval);
-		if (curTetromino.bottomHasCollided())
+		if (curTetromino.bottomIsColliding())
 		{
 			curTetromino.addToGrid();
 			const e = curTetromino.getRandom();
@@ -169,14 +184,14 @@ function loop(t)
 				lastHeldDown = t;
 				while (true)
 				{
-					if (curTetromino.bottomHasCollided()) break;
+					if (curTetromino.bottomIsColliding()) break;
 					curTetromino.y++;
 				}
 			}
 		}
 		else lastHeldDown = null;
-		if ((heldKeys.ArrowLeft || heldKeys.a) && curTetromino.x > 0) curTetromino.x--;
-		if ((heldKeys.ArrowRight || heldKeys.d) && curTetromino.x + curTetromino.w < gridWidth - 1) curTetromino.x++;
+		if ((heldKeys.ArrowLeft || heldKeys.a) && !curTetromino.sidesAreColliding()[0]) curTetromino.x--;
+		if ((heldKeys.ArrowRight || heldKeys.d) && !curTetromino.sidesAreColliding()[1]) curTetromino.x++;
 	}
 }
 loop();
