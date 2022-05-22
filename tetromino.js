@@ -17,9 +17,14 @@ export default class Tetromino
 	rotate(direction)
 	{
 		if (typeof direction !== 'number') return 'Invalid direction';
-		direction = Math.sign(direction);
-		this.rotation = (this.rotation + 1 + this.matrices.length) % this.matrices.length;
+		this.rotation = (this.rotation + Math.sign(direction) + this.matrices.length) % this.matrices.length;
 		this.currentMatrix = this.matrices[this.rotation];
+		// console.log(this.rotation);
+	}
+	move(direction)
+	{
+		if (typeof direction !== 'number') return 'Invalid direction';
+		this.topX += Math.sign(direction);
 	}
 	draw(ctx)
 	{
