@@ -3,13 +3,12 @@ export default class Tetromino
 	constructor(grid, matrices, color)
 	{
 		this.matrices = matrices;
-		this.currentMatrix = matrices[0];
 		this.rotation = 0;
+		this.currentMatrix = matrices[this.rotation];
 		this.color = color;
 		this.grid = grid;
 		this.topX = Math.ceil((grid.width / 2) - (this.currentMatrix[0].length / 2));
 		this.topY = -this.currentMatrix.length;
-		console.log(this.topX, this.topY)
 	}
 	fall()
 	{
@@ -76,26 +75,24 @@ const shapeMatrices = [
 	],
 	[	// L-shape
 		[
-			[
-				[1, 0, 0],
-				[1, 1, 1],
-				[0, 0, 0],
-			],
-			[
-				[0, 1, 1],
-				[0, 1, 0],
-				[0, 1, 0],
-			],
-			[
-				[0, 0, 0],
-				[1, 1, 1],
-				[0, 0, 1],
-			],
-			[
-				[0, 1, 0],
-				[0, 1, 0],
-				[1, 1, 0],
-			],
+			[1, 0, 0],
+			[1, 1, 1],
+			[0, 0, 0],
+		],
+		[
+			[0, 1, 1],
+			[0, 1, 0],
+			[0, 1, 0],
+		],
+		[
+			[0, 0, 0],
+			[1, 1, 1],
+			[0, 0, 1],
+		],
+		[
+			[0, 1, 0],
+			[0, 1, 0],
+			[1, 1, 0],
 		],
 	],
 	[	// J-shape
