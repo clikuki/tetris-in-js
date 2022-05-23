@@ -92,10 +92,11 @@ function loop(t)
 	const hardDropKeyPressed = inputHandler.hardDrop;
 	if (hardDropKeyPressed && !hasHardDrop)
 	{
-		currentTetromino.fall(true);
-		grid.addTetromino(currentTetromino);
-		currentTetromino = Tetromino.getRandom(grid);
 		hasHardDrop = true;
+		currentTetromino.fall(true);
+		if (currentTetromino) grid.addTetromino(currentTetromino);
+		if (grid[0].every(v => !v)) currentTetromino = Tetromino.getRandom(grid);
+		else currentTetromino = null;
 	}
 	else
 	{
@@ -110,13 +111,14 @@ function loop(t)
 				{
 					lastTouchedBottom = null;
 					grid.addTetromino(currentTetromino);
-					currentTetromino = Tetromino.getRandom(grid);
+					if (grid[0].every(v => !v)) currentTetromino = Tetromino.getRandom(grid);
+					else currentTetromino = null;
 				}
 			}
 			else lastTouchedBottom = null;
 			if (currentTetromino) currentTetromino.fall();
-			if (!hardDropKeyPressed) hasHardDrop = false;
 		}
+		if (!hardDropKeyPressed) hasHardDrop = false;
 	}
 }
 // loop();

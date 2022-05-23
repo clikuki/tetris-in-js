@@ -13,11 +13,27 @@ export default class Tetromino
 		this.boundingIndices = getLeftRightBoundingIndices(this.currentMatrix);
 		this.isTouchingBottom = false;
 	}
+	checkIfBotttomTouchesGround()
+	{
+		return this.topY + this.lowestY >= this.grid.height - 1 || this.checkIfOverlapsGridBlocks({ topY: this.topY + 1 });
+	}
+	checkIfOverlapsGridBlocks({ topX = this.topX, topY = this.topY, matrix = this.currentMatrix })
+	{
+		for (let j = 0; j < matrix.length; j++)
+		{
+			const row = matrix[j];
+			for (let i = 0; i < row.length; i++)
+			{
+				if (j + topY < 0) continue;
+				if (row[i] && this.grid[j + topY][i + topX]) return true;
+			}
+		}
+	}
 	fall(hardDrop)
 	{
 		do
 		{
-			if (this.topY + this.lowestY >= this.grid.height - 1)
+			if (this.checkIfBotttomTouchesGround())
 			{
 				this.isTouchingBottom = true;
 				break;
@@ -54,12 +70,15 @@ export default class Tetromino
 	{
 		if (typeof direction !== 'number') return 'Invalid direction';
 		direction = Math.sign(direction);
+		const newX = this.topX + direction;
 		if (
-			this.topX + this.boundingIndices.left + direction >= 0 &&
-			this.topX + direction + this.boundingIndices.right < this.grid.width
+			newX + this.boundingIndices.left >= 0 &&
+			newX + this.boundingIndices.right < this.grid.width &&
+			!this.checkIfOverlapsGridBlocks({ topX: newX })
 		)
 		{
-			this.topX += direction;
+			this.topX = newX;
+			this.isTouchingBottom = this.checkIfBotttomTouchesGround();
 		}
 	}
 	draw(ctx)
