@@ -73,7 +73,7 @@ StartLoop([
 			if (moveDirection)
 			{
 				if (lastMoved === null) lastMoved = t;
-				else if (t - lastMoved > (moveInARowCount === 1 ? moveLongDelay : moveShortDelay))
+				else if (!moveInARowCount || t - lastMoved > (moveInARowCount === 1 ? moveLongDelay : moveShortDelay))
 				{
 					if (moveDirection === 'left') currentTetromino.move(-1);
 					else currentTetromino.move(1);
@@ -91,7 +91,7 @@ StartLoop([
 			if (rotationDirection)
 			{
 				if (lastRotated === null) lastRotated = t;
-				else if (t - lastRotated > (rotatesInARowCount === 1 ? rotateLongDelay : rotateShortDelay))
+				else if (!rotatesInARowCount || t - lastRotated > (rotatesInARowCount === 1 ? rotateLongDelay : rotateShortDelay))
 				{
 					if (rotationDirection === 'rotateLeft') currentTetromino.rotate(-1);
 					else currentTetromino.rotate(1);
@@ -110,8 +110,7 @@ StartLoop([
 		interval: 1000 / 5,
 		code: ({ t }) =>
 		{
-			if (!currentTetromino) return;
-			if (currentTetromino.isTouchingBottom)
+			if (currentTetromino?.isTouchingBottom)
 			{
 				if (lastTouchedBottom === null) lastTouchedBottom = t;
 				else if (t - lastTouchedBottom > lockDelay)
@@ -122,7 +121,7 @@ StartLoop([
 				}
 			}
 			else lastTouchedBottom = null;
-			currentTetromino.fall();
+			if (currentTetromino) currentTetromino.fall();
 		}
 	},
 ]);
