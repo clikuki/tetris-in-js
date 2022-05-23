@@ -21,7 +21,10 @@ function StartLoop(blocks)
 			{
 				if (t !== undefined) block.then = t - (elapsed % block.interval);
 				let stopLoop = false;
-				block.code(block, t, () => stopLoop = true);
+				block.code({
+					b: block, t,
+					stop: () => stopLoop = true
+				});
 				if (stopLoop)
 				{
 					cancelAnimationFrame(handle);
@@ -42,66 +45,83 @@ inputHandler.addAction('rotateRight', 'e');
 inputHandler.setConflictingActions(['left', 'right'], 'direction');
 inputHandler.setConflictingActions(['rotateLeft', 'rotateRight'], 'rotationDirection');
 
-const rotateFirstDelay = 30;
-const rotateDelay = 10;
-let currentRotateDelay = 0;
-let isFirstRotate = true;
+const rotateLongDelay = 1000 / 5;
+const rotateShortDelay = 1000 / 15;
+let lastRotated = null;
+let rotatesInARowCount = 0;
 
-const moveFirstDelay = 10;
-const moveDelay = 1;
-let currentMoveDelay = 0;
-let isFirstMove = true;
+const moveLongDelay = 1000 / 5;
+const moveShortDelay = 1000 / 50;
+let lastMoved = null;
+let moveInARowCount = 0;
+
+const lockDelay = 1000 / 1;
+let lastTouchedBottom = null;
 StartLoop([
 	{
 		interval: 1000 / 60,
-		code: () =>
+		code: ({ t }) =>
 		{
 			ctx.fillStyle = 'black';
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
 			grid.draw(ctx);
-			currentTetromino.draw(ctx);
 
-			const direction = inputHandler.direction;
-			if (direction)
+			if (!currentTetromino) return;
+
+			currentTetromino.draw(ctx);
+			const moveDirection = inputHandler.direction;
+			if (moveDirection)
 			{
-				if (currentMoveDelay <= 0)
+				if (lastMoved === null) lastMoved = t;
+				else if (t - lastMoved > (moveInARowCount === 1 ? moveLongDelay : moveShortDelay))
 				{
-					currentMoveDelay = isFirstMove ? moveFirstDelay : moveDelay;
-					if (direction === 'left') currentTetromino.move(-1);
-					else if (direction === 'right') currentTetromino.move(1);
-					isFirstMove = false;
+					if (moveDirection === 'left') currentTetromino.move(-1);
+					else currentTetromino.move(1);
+					lastMoved = t;
+					moveInARowCount++;
 				}
-				else currentMoveDelay--;
 			}
 			else
 			{
-				currentMoveDelay = 0;
-				isFirstMove = true;
+				lastMoved = null;
+				moveInARowCount = 0;
 			}
 
 			const rotationDirection = inputHandler.rotationDirection;
 			if (rotationDirection)
 			{
-				if (currentRotateDelay <= 0)
+				if (lastRotated === null) lastRotated = t;
+				else if (t - lastRotated > (rotatesInARowCount === 1 ? rotateLongDelay : rotateShortDelay))
 				{
-					currentRotateDelay = isFirstRotate ? rotateFirstDelay : rotateDelay;
 					if (rotationDirection === 'rotateLeft') currentTetromino.rotate(-1);
-					else if (rotationDirection === 'rotateRight') currentTetromino.rotate(1);
-					isFirstRotate = false;
+					else currentTetromino.rotate(1);
+					lastRotated = t;
+					rotatesInARowCount++;
 				}
-				else currentRotateDelay--;
 			}
 			else
 			{
-				currentRotateDelay = 0;
-				isFirstRotate = true;
+				lastRotated = null;
+				rotatesInARowCount = 0;
 			}
 		}
 	},
 	{
 		interval: 1000 / 5,
-		code: () =>
+		code: ({ t }) =>
 		{
+			if (!currentTetromino) return;
+			if (currentTetromino.isTouchingBottom)
+			{
+				if (lastTouchedBottom === null) lastTouchedBottom = t;
+				else if (t - lastTouchedBottom > lockDelay)
+				{
+					lastTouchedBottom = null;
+					grid.addTetromino(currentTetromino);
+					currentTetromino = null;
+				}
+			}
+			else lastTouchedBottom = null;
 			currentTetromino.fall();
 		}
 	},
