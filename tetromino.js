@@ -60,6 +60,9 @@ export default class Tetromino
 		// Test for overlap against grid floor
 		if (this.topY + newLowestY >= this.grid.height - 1) return;
 
+		// Test for grid block overlaps
+		if (this.checkIfOverlapsGridBlocks({ matrix: newMatrix })) return;
+
 		// Rotation is sucessful
 		this.rotation = newRotationIndex
 		this.currentMatrix = newMatrix;
