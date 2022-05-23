@@ -58,6 +58,7 @@ StartLoop([
 		{
 			ctx.fillStyle = 'black';
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			grid.draw(ctx);
 			currentTetromino.draw(ctx);
 
 			const direction = inputHandler.direction;

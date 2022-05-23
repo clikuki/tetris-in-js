@@ -9,22 +9,35 @@ export default class Tetromino
 		this.grid = grid;
 		this.topX = Math.ceil((grid.width / 2) - (this.currentMatrix[0].length / 2));
 		this.topY = -this.currentMatrix.length;
+		this.lowestY = getLowestY(this.currentMatrix);
+		this.boundingIndices = getLeftRightBoundingIndices(this.currentMatrix);
+		this.isTouchingBottom = false;
 	}
 	fall()
 	{
-		this.topY++;
+		if (this.topY + this.lowestY >= this.grid.height - 1) this.isTouchingBottom = true;
+		else this.topY++;
 	}
 	rotate(direction)
 	{
 		if (typeof direction !== 'number') return 'Invalid direction';
+		if (this.matrices.length === 1) return;
 		this.rotation = (this.rotation + Math.sign(direction) + this.matrices.length) % this.matrices.length;
 		this.currentMatrix = this.matrices[this.rotation];
-		// console.log(this.rotation);
+		this.lowestY = getLowestY(this.currentMatrix);
+		this.boundingIndices = getLeftRightBoundingIndices(this.currentMatrix);
 	}
 	move(direction)
 	{
 		if (typeof direction !== 'number') return 'Invalid direction';
-		this.topX += Math.sign(direction);
+		direction = Math.sign(direction);
+		if (
+			this.topX + this.boundingIndices.left + direction >= 0 &&
+			this.topX + direction + this.boundingIndices.right < this.grid.width
+		)
+		{
+			this.topX += direction;
+		}
 	}
 	draw(ctx)
 	{
@@ -48,6 +61,32 @@ export default class Tetromino
 		const index = Math.floor(Math.random() * shapeMatrices.length);
 		return new Tetromino(grid, shapeMatrices[index], colors[index]);
 	}
+}
+
+function getLowestY(matrix)
+{
+	let lowestY = 0;
+	for (let j = 1; j < matrix.length; j++)
+	{
+		if (matrix[j].some(v => v)) lowestY = j;
+	}
+	return lowestY;
+}
+
+function getLeftRightBoundingIndices(matrix)
+{
+	const setCells = new Array(matrix[0].length).fill(false);
+	for (const row of matrix)
+	{
+		for (let i = 0; i < row.length; i++)
+		{
+			if (row[i]) setCells[i] = true;
+		}
+	}
+	return {
+		left: setCells.findIndex(v => v),
+		right: setCells.length - 1 - setCells.reverse().findIndex(v => v),
+	};
 }
 
 const colors = ['#00f0f0', '#0000f0', '#f0a000', '#f0f000', '#00f000', '#a000f0', '#f00000'];

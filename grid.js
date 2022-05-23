@@ -13,23 +13,16 @@ export default class Grid extends Array
 	}
 	addTetromino(tetromino)
 	{
-		// for (let j = 0; j < this.length; j++)
-		// {
-		// 	const row = this[j];
-		// 	for (let i = 0; i < row.length; i++)
-		// 	{
-		// 		if (row[i])
-		// 		{
-		// 			ctx.fillStyle = row[i];
-		// 			ctx.fillRect(
-		// 				i * this.cellSize,
-		// 				j * this.cellSize,
-		// 				this.cellSize,
-		// 				this.cellSize
-		// 			);
-		// 		}
-		// 	}
-		// }
+		const color = tetromino.color;
+		const matrix = tetromino.currentMatrix;
+		for (let j = 0; j < matrix.length; j++)
+		{
+			const row = matrix[j];
+			for (let i = 0; i < row.length; i++)
+			{
+				if (row[i]) this[j + tetromino.topY][i + tetromino.topX] = color;
+			}
+		}
 	}
 	draw(ctx)
 	{
