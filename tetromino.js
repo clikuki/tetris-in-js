@@ -18,14 +18,30 @@ export default class Tetromino
 		if (this.topY + this.lowestY >= this.grid.height - 1) this.isTouchingBottom = true;
 		else this.topY++;
 	}
+	// TODO: Implement wall and floor kicks
 	rotate(direction)
 	{
 		if (typeof direction !== 'number') return 'Invalid direction';
 		if (this.matrices.length === 1) return;
-		this.rotation = (this.rotation + Math.sign(direction) + this.matrices.length) % this.matrices.length;
-		this.currentMatrix = this.matrices[this.rotation];
-		this.lowestY = getLowestY(this.currentMatrix);
-		this.boundingIndices = getLeftRightBoundingIndices(this.currentMatrix);
+		const newRotationIndex = (this.rotation + Math.sign(direction) + this.matrices.length) % this.matrices.length;
+		const newMatrix = this.matrices[newRotationIndex]
+		const newLowestY = getLowestY(newMatrix);
+		const newBoundingIndices = getLeftRightBoundingIndices(newMatrix);
+
+		// Test for overlap against grid walls
+		if (
+			this.topX + newBoundingIndices.left < 0 ||
+			this.topX + newBoundingIndices.right >= this.grid.width
+		) return;
+
+		// Test for overlap against grid floor
+		if (this.topY + newLowestY >= this.grid.height - 1) return;
+
+		// Rotation is sucessful
+		this.rotation = newRotationIndex
+		this.currentMatrix = newMatrix;
+		this.lowestY = newLowestY;
+		this.boundingIndices = newBoundingIndices;
 	}
 	move(direction)
 	{
