@@ -13,10 +13,17 @@ export default class Tetromino
 		this.boundingIndices = getLeftRightBoundingIndices(this.currentMatrix);
 		this.isTouchingBottom = false;
 	}
-	fall()
+	fall(hardDrop)
 	{
-		if (this.topY + this.lowestY >= this.grid.height - 1) this.isTouchingBottom = true;
-		else this.topY++;
+		do
+		{
+			if (this.topY + this.lowestY >= this.grid.height - 1)
+			{
+				this.isTouchingBottom = true;
+				break;
+			}
+			else this.topY++;
+		} while (hardDrop);
 	}
 	// TODO: Implement wall and floor kicks
 	rotate(direction)
