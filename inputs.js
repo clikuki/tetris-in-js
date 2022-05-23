@@ -31,6 +31,14 @@ export default class InputHandler
 	{
 		this.actionKeyPairs[key] = action;
 	}
+	addActions(actionKeyPairs)
+	{
+		for (const action in actionKeyPairs)
+		{
+			const key = actionKeyPairs[action];
+			this.addAction(action, key);
+		}
+	}
 	removeAction(key)
 	{
 		const action = this.actionKeyPairs[key];
@@ -41,6 +49,11 @@ export default class InputHandler
 	{
 		this.conflictingActions.push({ conflicts: conflictingActions, key });
 		this[key] = null;
+	}
+	unsetConflictingActions(key)
+	{
+		this.conflictingActions = this.conflictingActions.filter(({ Bkey: BKey }) => BKey !== key);
+		delete this[key];
 	}
 	destroy()
 	{

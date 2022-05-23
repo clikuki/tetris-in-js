@@ -14,7 +14,7 @@ export default class Grid extends Array
 	addTetromino(tetromino)
 	{
 		if (tetromino.topY < 0 || tetromino.topY + tetromino.lowestY >= this.height) return;
-		if (tetromino.topX < 0 || tetromino.topX + tetromino.boundingIndices.right >= this.width) return;
+		if (tetromino.topX + tetromino.boundingIndices.left < 0 || tetromino.topX + tetromino.boundingIndices.right >= this.width) return;
 		const color = tetromino.color;
 		const matrix = tetromino.currentMatrix;
 		for (let j = 0; j < matrix.length; j++)

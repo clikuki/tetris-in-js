@@ -10,12 +10,14 @@ document.body.append(canvas);
 
 let currentTetromino = Tetromino.getRandom(grid);
 const inputHandler = new InputHandler();
-inputHandler.addAction('left', 'a');
-inputHandler.addAction('right', 'd');
-inputHandler.addAction('rotateLeft', 'q');
-inputHandler.addAction('rotateRight', 'e');
-inputHandler.addAction('softDrop', 's');
-inputHandler.addAction('hardDrop', ' ');
+inputHandler.addActions({
+	left: 'a',
+	right: 'd',
+	rotateLeft: 'q',
+	rotateRight: 'e',
+	softDrop: 's',
+	hardDrop: ' ',
+})
 inputHandler.setConflictingActions(['left', 'right'], 'direction');
 inputHandler.setConflictingActions(['rotateLeft', 'rotateRight'], 'rotationDirection');
 
