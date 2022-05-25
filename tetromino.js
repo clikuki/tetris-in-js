@@ -12,6 +12,11 @@ export default class Tetromino
 		this.boundingIndices = getBoundingIndices(this.currentMatrix);
 		this.isTouchingBottom = false;
 	}
+	resetPosition()
+	{
+		this.topX = Math.ceil((this.grid.width / 2) - (this.currentMatrix[0].length / 2));
+		this.topY = -this.currentMatrix.length;
+	}
 	checkIfBotttomTouchesGround()
 	{
 		return this.topY + this.boundingIndices.bottom >= this.grid.height - 1 || this.checkIfOverlapsGridBlocks({ topY: this.topY + 1 });
@@ -81,7 +86,7 @@ export default class Tetromino
 			this.isTouchingBottom = this.checkIfBotttomTouchesGround();
 		}
 	}
-	draw(ctx)
+	draw(ctx, canvasToCenterAround)
 	{
 		ctx.fillStyle = this.color;
 		for (let j = 0; j < this.currentMatrix.length; j++)
@@ -89,12 +94,21 @@ export default class Tetromino
 			const row = this.currentMatrix[j];
 			for (let i = 0; i < row.length; i++)
 			{
-				if (row[i]) ctx.fillRect(
-					(i + this.topX) * this.grid.cellSize,
-					(j + this.topY) * this.grid.cellSize,
-					this.grid.cellSize,
-					this.grid.cellSize,
-				);
+				if (row[i])
+				{
+					let x = (i + this.topX) * this.grid.cellSize;
+					let y = (j + this.topY) * this.grid.cellSize;
+
+					if (canvasToCenterAround)
+					{
+						const xPad = (this.currentMatrix[0].length * this.grid.cellSize - canvasToCenterAround.width) / 2;
+						const yPad = (this.currentMatrix.length * this.grid.cellSize - canvasToCenterAround.height) / 2;
+						x = i * this.grid.cellSize - xPad;
+						y = j * this.grid.cellSize - yPad;
+					}
+
+					ctx.fillRect(x, y, this.grid.cellSize, this.grid.cellSize);
+				}
 			}
 		}
 	}

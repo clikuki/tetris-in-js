@@ -6,7 +6,25 @@ const ctx = canvas.getContext('2d', { alpha: false });
 const grid = new Grid(10, 20, 30);
 canvas.width = grid.width * grid.cellSize;
 canvas.height = grid.height * grid.cellSize;
+canvas.classList.add('game')
 document.body.append(canvas);
+
+const nextTetrominoCanvas = document.querySelector('.nextTetromino');
+const ntctx = nextTetrominoCanvas.getContext('2d', { alpha: false });
+let nextTetromino = Tetromino.getRandom(grid);
+nextTetrominoCanvas.width = grid.cellSize * 5;
+nextTetrominoCanvas.height = grid.cellSize * 5;
+ntctx.fillStyle = 'black';
+ntctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
+nextTetromino.draw(ntctx, nextTetrominoCanvas);
+
+const tetrominoHolderCanvas = document.querySelector('.holder');
+const thctx = tetrominoHolderCanvas.getContext('2d', { alpha: false });
+let heldTetromino = null;
+tetrominoHolderCanvas.width = grid.cellSize * 5;
+tetrominoHolderCanvas.height = grid.cellSize * 5;
+thctx.fillStyle = 'black';
+thctx.fillRect(0, 0, tetrominoHolderCanvas.width, tetrominoHolderCanvas.height);
 
 let currentTetromino = Tetromino.getRandom(grid);
 const inputHandler = new InputHandler(canvas);
@@ -17,6 +35,7 @@ inputHandler.addActions({
 	rotateRight: 'e',
 	softDrop: 's',
 	hardDrop: ' ',
+	hold: 'f',
 })
 inputHandler.setConflictingActions(['left', 'right'], 'direction');
 inputHandler.setConflictingActions(['rotateLeft', 'rotateRight'], 'rotationDirection');
@@ -40,6 +59,8 @@ const normalDropInterval = 1000 / 5;
 const softDropInterval = 1000 / 10;
 let dropThen = 0;
 let hasHardDrop = false;
+let holdKeyPressed = false;
+let canSwapHeldTetromino = true;
 
 let gameOver = false;
 function loop(t)
@@ -92,6 +113,31 @@ function loop(t)
 			lastRotated = null;
 			rotatesInARowCount = 0;
 		}
+
+		if (inputHandler.hold)
+		{
+			if (!holdKeyPressed && canSwapHeldTetromino)
+			{
+				holdKeyPressed = true;
+				canSwapHeldTetromino = false;
+				[heldTetromino, currentTetromino] = [currentTetromino, heldTetromino];
+				if (!currentTetromino)
+				{
+					currentTetromino = nextTetromino;
+					nextTetromino = Tetromino.getRandom(grid);
+					ntctx.fillStyle = 'black';
+					ntctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
+					nextTetromino.draw(ntctx, nextTetrominoCanvas);
+				}
+				heldTetromino.resetPosition();
+				thctx.fillStyle = 'black';
+				thctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
+				heldTetromino.draw(thctx, tetrominoHolderCanvas);
+				thctx.fillStyle = '#333333aa';
+				thctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
+			}
+		}
+		else holdKeyPressed = false;
 	}
 
 	const hardDropKeyPressed = inputHandler.hardDrop;
@@ -104,7 +150,18 @@ function loop(t)
 			currentTetromino = null;
 			gameOver = true;
 		}
-		else currentTetromino = Tetromino.getRandom(grid);
+		else
+		{
+			currentTetromino = nextTetromino;
+			nextTetromino = Tetromino.getRandom(grid);
+			ntctx.fillStyle = 'black';
+			ntctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
+			nextTetromino.draw(ntctx, nextTetrominoCanvas);
+			canSwapHeldTetromino = true;
+			thctx.fillStyle = 'black';
+			thctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
+			heldTetromino.draw(thctx, tetrominoHolderCanvas);
+		}
 	}
 	else
 	{
@@ -123,7 +180,18 @@ function loop(t)
 						currentTetromino = null;
 						gameOver = true;
 					}
-					else currentTetromino = Tetromino.getRandom(grid);
+					else
+					{
+						currentTetromino = nextTetromino;
+						nextTetromino = Tetromino.getRandom(grid);
+						ntctx.fillStyle = 'black';
+						ntctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
+						nextTetromino.draw(ntctx, nextTetrominoCanvas);
+						canSwapHeldTetromino = true;
+						thctx.fillStyle = 'black';
+						thctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
+						heldTetromino.draw(thctx, tetrominoHolderCanvas);
+					}
 				}
 			}
 			else lastTouchedBottom = null;
