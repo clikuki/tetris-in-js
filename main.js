@@ -40,8 +40,11 @@ const normalDropInterval = 1000 / 5;
 const softDropInterval = 1000 / 10;
 let dropThen = 0;
 let hasHardDrop = false;
+
+let gameOver = false;
 function loop(t)
 {
+	if (gameOver) return;
 	requestAnimationFrame(loop);
 	const mainElapsed = t - mainThen;
 	if (mainElapsed > mainInterval || t === undefined)
@@ -96,9 +99,12 @@ function loop(t)
 	{
 		hasHardDrop = true;
 		currentTetromino.fall(true);
-		if (currentTetromino) grid.addTetromino(currentTetromino);
-		if (grid[0].every(v => !v)) currentTetromino = Tetromino.getRandom(grid);
-		else currentTetromino = null;
+		if (grid.addTetromino(currentTetromino))
+		{
+			currentTetromino = null;
+			gameOver = true;
+		}
+		else currentTetromino = Tetromino.getRandom(grid);
 	}
 	else
 	{
@@ -112,9 +118,12 @@ function loop(t)
 				else if (t - lastTouchedBottom > lockDelay)
 				{
 					lastTouchedBottom = null;
-					grid.addTetromino(currentTetromino);
-					if (grid[0].every(v => !v)) currentTetromino = Tetromino.getRandom(grid);
-					else currentTetromino = null;
+					if (grid.addTetromino(currentTetromino))
+					{
+						currentTetromino = null;
+						gameOver = true;
+					}
+					else currentTetromino = Tetromino.getRandom(grid);
 				}
 			}
 			else lastTouchedBottom = null;
@@ -123,5 +132,4 @@ function loop(t)
 		if (!hardDropKeyPressed) hasHardDrop = false;
 	}
 }
-// loop();
 requestAnimationFrame(loop)

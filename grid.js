@@ -13,8 +13,6 @@ export default class Grid extends Array
 	}
 	addTetromino(tetromino)
 	{
-		if (tetromino.topY < 0 || tetromino.topY + tetromino.boundingIndices.bottom >= this.height) return;
-		if (tetromino.topX + tetromino.boundingIndices.left < 0 || tetromino.topX + tetromino.boundingIndices.right >= this.width) return;
 		const color = tetromino.color;
 		const matrix = tetromino.currentMatrix;
 		for (let j = 0; j < matrix.length; j++)
@@ -22,9 +20,14 @@ export default class Grid extends Array
 			const row = matrix[j];
 			for (let i = 0; i < row.length; i++)
 			{
+				const x = i + tetromino.topX;
+				const y = j + tetromino.topY;
+				if (y < 0 || y >= this.height || x < 0 || x >= this.width) continue;
 				if (row[i]) this[j + tetromino.topY][i + tetromino.topX] = color;
 			}
 		}
+
+		if (tetromino.topY < 0) return 'HIT TOP';
 	}
 	draw(ctx)
 	{

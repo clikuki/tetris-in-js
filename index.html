@@ -8,9 +8,44 @@
 	<style>
 		body {
 			margin: 0;
+			display: grid;
+			grid-template-areas:
+				"header 	header header"
+				"sideLeft canvas sideRight"
+				"bottom 	bottom bottom"
+			;
+			grid-template-rows: 1fr auto minmax(1fr, auto);
+			grid-template-columns: 1fr auto 1fr;
+			font-family: 'Courier New', Courier, monospace;
+			background-color: #00f0f0;
+		}
+		header
+		{
+			grid-area: header;
+			text-align: center;
+			font-size: xx-large;
+		}
+		canvas {
+			grid-area: canvas;
+		}
+		.sideLeft {
+			grid-area: sideLeft;
+		}
+		.sideRight {
+			grid-area: sideRight;
+		}
+		.bottom {
+			grid-area: bottom;
 		}
 	</style>
 </head>
 <body>
+	<header>TETRIS</header>
+	<div class="sideLeft">
+	</div>
+	<div class="sideRight">
+	</div>
+	<div class="bottom">
+	</div>
 </body>
 </html>
