@@ -116,17 +116,22 @@ export default class Tetromino
 	{
 		if (!indicesBucket.length)
 		{
-			const bucketSize = 1;
+			const bucketSize = 2;
+			const preIndicesBucket = [];
 			for (let i = 0; i < bucketSize; i++)
 			{
-				const indices = [];
-				while (indices.length < presets.length)
+				while (preIndicesBucket.length < presets.length)
 				{
 					const index = Math.floor(Math.random() * presets.length);
-					if (indices.includes(index)) continue;
-					indices.push(index);
+					if (preIndicesBucket.includes(index)) continue;
+					preIndicesBucket.push(index);
 				}
-				indicesBucket.push(...indices);
+			}
+			while (preIndicesBucket.length)
+			{
+				const randomIndex = Math.floor(Math.random() * preIndicesBucket.length);
+				const indexToPush = preIndicesBucket.splice(randomIndex, 1);
+				indicesBucket.push(indexToPush);
 			}
 		}
 
