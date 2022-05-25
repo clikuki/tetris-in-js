@@ -61,6 +61,7 @@ const mainInterval = 1000 / 60;
 let mainThen = 0;
 const normalDropInterval = 1000 / 5;
 const softDropInterval = 1000 / 10;
+let softDropMode = false;
 let dropThen = 0;
 let hasHardDrop = false;
 let holdKeyPressed = false;
@@ -212,14 +213,15 @@ function loop(t)
 	else
 	{
 		const dropElapsed = t - dropThen;
-		if (dropElapsed > (inputHandler.softDrop ? softDropInterval : normalDropInterval) || t === undefined)
+		softDropMode = (inputHandler.softDrop && (softDropMode || !currentTetromino.isTouchingBottom));
+		if (dropElapsed > (softDropMode ? softDropInterval : normalDropInterval) || t === undefined)
 		{
 			if (t !== undefined) dropThen = t - (dropElapsed % normalDropInterval);
 			if (currentTetromino?.isTouchingBottom)
 			{
 				const manualLockHeld = inputHandler.softDrop;
 				if (lastTouchedBottom === null) lastTouchedBottom = t;
-				if (manualLockHeld || t - lastTouchedBottom > lockDelay)
+				if ((manualLockHeld && !softDropMode) || t - lastTouchedBottom > lockDelay)
 				{
 					lastTouchedBottom = null;
 					const newPoints = grid.addTetromino(currentTetromino);
@@ -230,6 +232,7 @@ function loop(t)
 					}
 					else
 					{
+						softDropMode = false;
 						score += newPoints;
 						scoreDisplay.textContent = `score: ${score}`;
 						currentTetromino = nextTetromino;
