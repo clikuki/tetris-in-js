@@ -36,6 +36,7 @@ inputHandler.addActions({
 	softDrop: 's',
 	hardDrop: ' ',
 	hold: 'f',
+	restart: 'r',
 })
 inputHandler.setConflictingActions(['left', 'right'], 'direction');
 inputHandler.setConflictingActions(['rotateLeft', 'rotateRight'], 'rotationDirection');
@@ -63,23 +64,46 @@ let holdKeyPressed = false;
 let canSwapHeldTetromino = true;
 
 let gameOver = false;
+let hasDrawnGameOver = false;
 function loop(t)
 {
+	requestAnimationFrame(loop);
 	if (gameOver)
 	{
-		ctx.fillStyle = '#333333aa';
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
-		ctx.fillStyle = 'black';
-		ctx.strokeStyle = 'white';
-		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.font = ctx.font.replace(/\d+px/, '48px');
-		ctx.strokeText('GAME OVER', canvas.width / 2, canvas.height / 2);
-		ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+		if (!hasDrawnGameOver)
+		{
+			ctx.fillStyle = '#333333aa';
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.fillStyle = 'black';
+			ctx.strokeStyle = 'white';
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.font = ctx.font.replace(/\d+px/, '48px');
+			ctx.strokeText('GAME OVER', canvas.width / 2, canvas.height / 2);
+			ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+			ctx.font = ctx.font.replace(/\d+px/, '30px');
+			ctx.lineWidth = 1;
+			ctx.strokeText('Press R to restart', canvas.width / 2, canvas.height / 2 + 48);
+			ctx.fillText('Press R to restart', canvas.width / 2, canvas.height / 2 + 48);
+			hasDrawnGameOver = true;
+		}
+		else if (inputHandler.restart)
+		{
+			grid.empty();
+			currentTetromino = Tetromino.getRandom(grid);
+			heldTetromino = null;
+			thctx.fillStyle = 'black';
+			thctx.fillRect(0, 0, tetrominoHolderCanvas.width, tetrominoHolderCanvas.height);
+			nextTetromino = Tetromino.getRandom(grid,);
+			ntctx.fillStyle = 'black';
+			ntctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
+			nextTetromino.draw(ntctx, nextTetrominoCanvas);
+			gameOver = false;
+			hasDrawnGameOver = false;
+		}
 		return;
 	}
 
-	requestAnimationFrame(loop);
 	const mainElapsed = t - mainThen;
 	if (mainElapsed > mainInterval || t === undefined)
 	{
@@ -188,8 +212,8 @@ function loop(t)
 			if (currentTetromino?.isTouchingBottom)
 			{
 				const manualLockHeld = inputHandler.softDrop;
-				if (!manualLockHeld || lastTouchedBottom === null) lastTouchedBottom = t;
-				else if (manualLockHeld || t - lastTouchedBottom > lockDelay)
+				if (lastTouchedBottom === null) lastTouchedBottom = t;
+				if (manualLockHeld || t - lastTouchedBottom > lockDelay)
 				{
 					lastTouchedBottom = null;
 					if (grid.addTetromino(currentTetromino))

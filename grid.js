@@ -67,4 +67,11 @@ export default class Grid extends Array
 			}
 		}
 	}
+	empty()
+	{
+		for (let j = 0; j < this.height; j++)
+		{
+			this[j] = new Array(this.width).fill(0);
+		}
+	}
 }
