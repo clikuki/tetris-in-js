@@ -7,6 +7,7 @@ export default class InputHandler
 		this.conflictingActions = [];
 		this.keyDownEvent = e =>
 		{
+			e.preventDefault();
 			const action = this.actionKeyPairs[e.key];
 			if (!action) return;
 			this[action] = true;
