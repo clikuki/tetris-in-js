@@ -1,11 +1,11 @@
 export default class Tetromino
 {
-	constructor(grid, matrices, color)
+	constructor(grid, matrices, image)
 	{
 		this.matrices = matrices;
 		this.rotation = 0;
 		this.currentMatrix = matrices[this.rotation];
-		this.color = color;
+		this.image = image;
 		this.grid = grid;
 		this.topX = Math.ceil((grid.width / 2) - (this.currentMatrix[0].length / 2));
 		this.topY = -this.currentMatrix.length;
@@ -88,7 +88,6 @@ export default class Tetromino
 	}
 	draw(ctx, canvasToCenterAround)
 	{
-		ctx.fillStyle = this.color;
 		for (let j = 0; j < this.currentMatrix.length; j++)
 		{
 			const row = this.currentMatrix[j];
@@ -107,7 +106,7 @@ export default class Tetromino
 						y = j * this.grid.cellSize - yPad;
 					}
 
-					ctx.fillRect(x, y, this.grid.cellSize, this.grid.cellSize);
+					ctx.drawImage(this.image, x, y, this.grid.cellSize, this.grid.cellSize);
 				}
 			}
 		}
@@ -136,8 +135,8 @@ export default class Tetromino
 		}
 
 		const index = indicesBucket.pop();
-		const { color, matrices } = presets[index];
-		return new Tetromino(grid, matrices, color);
+		const { image, matrices } = presets[index];
+		return new Tetromino(grid, matrices, image);
 	}
 }
 
@@ -177,9 +176,48 @@ function getBoundingIndices(matrix)
 	};
 }
 
+function getImage(h, s, l)
+{
+	const distFromEdge = 10;
+	const image = document.createElement('canvas');
+	const c = image.getContext('2d', { alpha: false });
+	const size = 100;
+	image.width = size;
+	image.height = size;
+	c.fillStyle = `hsl(${h},${s}%,${l}%)`;
+	c.fillRect(0, 0, size, size);
+	c.fillStyle = `hsl(${h},${s}%,${Math.min(l + 20, 100)}%)`;
+	c.beginPath();
+	c.moveTo(0, 0);
+	c.lineTo(distFromEdge, distFromEdge);
+	c.lineTo(size - distFromEdge, distFromEdge);
+	c.lineTo(size, 0);
+	c.fill();
+	c.fillStyle = `hsl(${h},${s}%,${Math.max(l - 10, 0)}%)`;
+	c.beginPath();
+	c.moveTo(0, 0);
+	c.lineTo(distFromEdge, distFromEdge);
+	c.lineTo(distFromEdge, size - distFromEdge);
+	c.lineTo(0, size);
+	c.moveTo(size, 0);
+	c.lineTo(size - distFromEdge, distFromEdge);
+	c.lineTo(size - distFromEdge, size - distFromEdge);
+	c.lineTo(size, size);
+	c.fill();
+	c.fillStyle = `hsl(${h},${s}%,${Math.max(l - 30, 0)}%)`;
+	c.beginPath();
+	c.moveTo(0, size);
+	c.lineTo(distFromEdge, size - distFromEdge);
+	c.lineTo(size - distFromEdge, size - distFromEdge);
+	c.lineTo(size, size);
+	c.fill();
+	return image;
+}
+
 const presets = [
 	{	// I-Shape
-		color: '#00f0f0',
+		// color: '#00f0f0',
+		image: getImage(180, 100, 47),
 		matrices: [
 			[
 				[0, 0, 0, 0],
@@ -208,7 +246,8 @@ const presets = [
 		]
 	},
 	{
-		color: '#0000f0',
+		// color: '#0000f0',
+		image: getImage(240, 100, 47),
 		matrices: [
 			[
 				[1, 0, 0],
@@ -233,7 +272,8 @@ const presets = [
 		]
 	},
 	{
-		color: '#f0a000',
+		// color: '#f0a000',
+		image: getImage(40, 100, 47),
 		matrices: [
 			[
 				[0, 0, 1],
@@ -258,7 +298,8 @@ const presets = [
 		]
 	},
 	{
-		color: '#f0f000',
+		// color: '#f0f000',
+		image: getImage(60, 100, 47),
 		matrices: [
 			[
 				[1, 1],
@@ -267,7 +308,8 @@ const presets = [
 		]
 	},
 	{
-		color: '#00f000',
+		// color: '#00f000',
+		image: getImage(120, 100, 47),
 		matrices: [
 			[
 				[0, 1, 1],
@@ -292,7 +334,8 @@ const presets = [
 		]
 	},
 	{
-		color: '#a000f0',
+		// color: '#a000f0',
+		image: getImage(280, 100, 47),
 		matrices: [
 			[
 				[0, 1, 0],
@@ -317,7 +360,8 @@ const presets = [
 		]
 	},
 	{
-		color: '#f00000',
+		// color: '#f00000',
+		image: getImage(0, 100, 47),
 		matrices: [
 			[
 				[1, 1, 0],

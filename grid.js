@@ -16,7 +16,7 @@ export default class Grid extends Array
 	addTetromino(tetromino)
 	{
 		let hasHitTop = false;
-		const color = tetromino.color;
+		const image = tetromino.image;
 		const matrix = tetromino.currentMatrix;
 		const updatedRowIndices = new Set();
 		for (let j = 0; j < matrix.length; j++)
@@ -31,7 +31,7 @@ export default class Grid extends Array
 				if (row[i])
 				{
 					updatedRowIndices.add(y);
-					this[y][x] = color;
+					this[y][x] = image;
 				}
 			}
 		}
@@ -90,8 +90,8 @@ export default class Grid extends Array
 			{
 				if (row[i])
 				{
-					ctx.fillStyle = row[i];
-					ctx.fillRect(
+					ctx.drawImage(
+						row[i],
 						i * this.cellSize,
 						j * this.cellSize,
 						this.cellSize,

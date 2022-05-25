@@ -10,4 +10,3 @@ A simple tetris clone in Javascript.
 - Next tetromino preview
 ### Todo
 - Add wall and floor kicks
-- use images as block faces
