@@ -13,6 +13,7 @@ export default class Grid extends Array
 	}
 	addTetromino(tetromino)
 	{
+		let hasHitTop = false;
 		const color = tetromino.color;
 		const matrix = tetromino.currentMatrix;
 		const updatedRowIndices = new Set();
@@ -23,6 +24,7 @@ export default class Grid extends Array
 			{
 				const x = i + tetromino.topX;
 				const y = j + tetromino.topY;
+				if (y <= 0) hasHitTop = true;
 				if (y < 0 || y >= this.height || x < 0 || x >= this.width) continue;
 				if (row[i])
 				{
@@ -32,7 +34,7 @@ export default class Grid extends Array
 			}
 		}
 
-		if (tetromino.topY < 0) return 'HIT TOP';
+		if (hasHitTop) return 'HIT TOP';
 
 		let lineCleared = false;
 		for (const rowIndex of [...updatedRowIndices].sort((a, b) => b - a))

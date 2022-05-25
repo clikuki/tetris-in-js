@@ -65,7 +65,20 @@ let canSwapHeldTetromino = true;
 let gameOver = false;
 function loop(t)
 {
-	if (gameOver) return;
+	if (gameOver)
+	{
+		ctx.fillStyle = '#333333aa';
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		ctx.fillStyle = 'black';
+		ctx.strokeStyle = 'white';
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.font = ctx.font.replace(/\d+px/, '48px');
+		ctx.strokeText('GAME OVER', canvas.width / 2, canvas.height / 2);
+		ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+		return;
+	}
+
 	requestAnimationFrame(loop);
 	const mainElapsed = t - mainThen;
 	if (mainElapsed > mainInterval || t === undefined)
