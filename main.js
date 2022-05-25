@@ -187,8 +187,9 @@ function loop(t)
 			if (t !== undefined) dropThen = t - (dropElapsed % normalDropInterval);
 			if (currentTetromino?.isTouchingBottom)
 			{
-				if (lastTouchedBottom === null) lastTouchedBottom = t;
-				else if (t - lastTouchedBottom > lockDelay)
+				const manualLockHeld = inputHandler.softDrop;
+				if (!manualLockHeld || lastTouchedBottom === null) lastTouchedBottom = t;
+				else if (manualLockHeld || t - lastTouchedBottom > lockDelay)
 				{
 					lastTouchedBottom = null;
 					if (grid.addTetromino(currentTetromino))
