@@ -157,10 +157,13 @@ function loop(t)
 			ntctx.fillStyle = 'black';
 			ntctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
 			nextTetromino.draw(ntctx, nextTetrominoCanvas);
-			canSwapHeldTetromino = true;
-			thctx.fillStyle = 'black';
-			thctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
-			heldTetromino.draw(thctx, tetrominoHolderCanvas);
+			if (heldTetromino)
+			{
+				canSwapHeldTetromino = true;
+				thctx.fillStyle = 'black';
+				thctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
+				heldTetromino.draw(thctx, tetrominoHolderCanvas);
+			}
 		}
 	}
 	else
@@ -187,10 +190,13 @@ function loop(t)
 						ntctx.fillStyle = 'black';
 						ntctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
 						nextTetromino.draw(ntctx, nextTetrominoCanvas);
-						canSwapHeldTetromino = true;
-						thctx.fillStyle = 'black';
-						thctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
-						heldTetromino.draw(thctx, tetrominoHolderCanvas);
+						if (heldTetromino)
+						{
+							canSwapHeldTetromino = true;
+							thctx.fillStyle = 'black';
+							thctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
+							heldTetromino.draw(thctx, tetrominoHolderCanvas);
+						}
 					}
 				}
 			}

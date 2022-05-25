@@ -8,13 +8,14 @@ export default class Grid extends Array
 		this.cellSize = cellSize;
 		for (let j = 0; j < height; j++)
 		{
-			this[j] = new Array(width);
+			this[j] = new Array(width).fill(0);
 		}
 	}
 	addTetromino(tetromino)
 	{
 		const color = tetromino.color;
 		const matrix = tetromino.currentMatrix;
+		const updatedRowIndices = new Set();
 		for (let j = 0; j < matrix.length; j++)
 		{
 			const row = matrix[j];
@@ -23,11 +24,26 @@ export default class Grid extends Array
 				const x = i + tetromino.topX;
 				const y = j + tetromino.topY;
 				if (y < 0 || y >= this.height || x < 0 || x >= this.width) continue;
-				if (row[i]) this[j + tetromino.topY][i + tetromino.topX] = color;
+				if (row[i])
+				{
+					updatedRowIndices.add(y);
+					this[y][x] = color;
+				}
 			}
 		}
 
 		if (tetromino.topY < 0) return 'HIT TOP';
+
+		let lineCleared = false;
+		for (const rowIndex of [...updatedRowIndices].sort((a, b) => b - a))
+		{
+			if (this[rowIndex].every(v => v))
+			{
+				lineCleared = true;
+				this.splice(rowIndex, 1);
+			}
+		}
+		if (lineCleared) this.unshift(...new Array(this.height - this.length).fill(0).map(() => new Array(this.width).fill(0)));
 	}
 	draw(ctx)
 	{
