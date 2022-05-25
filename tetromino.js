@@ -9,13 +9,12 @@ export default class Tetromino
 		this.grid = grid;
 		this.topX = Math.ceil((grid.width / 2) - (this.currentMatrix[0].length / 2));
 		this.topY = -this.currentMatrix.length;
-		this.lowestY = getLowestY(this.currentMatrix);
-		this.boundingIndices = getLeftRightBoundingIndices(this.currentMatrix);
+		this.boundingIndices = getBoundingIndices(this.currentMatrix);
 		this.isTouchingBottom = false;
 	}
 	checkIfBotttomTouchesGround()
 	{
-		return this.topY + this.lowestY >= this.grid.height - 1 || this.checkIfOverlapsGridBlocks({ topY: this.topY + 1 });
+		return this.topY + this.boundingIndices.bottom >= this.grid.height - 1 || this.checkIfOverlapsGridBlocks({ topY: this.topY + 1 });
 	}
 	checkIfOverlapsGridBlocks({ topX = this.topX, topY = this.topY, matrix = this.currentMatrix })
 	{
@@ -48,8 +47,7 @@ export default class Tetromino
 		if (this.matrices.length === 1) return;
 		const newRotationIndex = (this.rotation + Math.sign(direction) + this.matrices.length) % this.matrices.length;
 		const newMatrix = this.matrices[newRotationIndex]
-		const newLowestY = getLowestY(newMatrix);
-		const newBoundingIndices = getLeftRightBoundingIndices(newMatrix);
+		const newBoundingIndices = getBoundingIndices(newMatrix);
 
 		// Test for overlap against grid walls
 		if (
@@ -58,7 +56,7 @@ export default class Tetromino
 		) return;
 
 		// Test for overlap against grid floor
-		if (this.topY + newLowestY >= this.grid.height - 1) return;
+		if (this.topY + this.boundingIndices.bottom >= this.grid.height - 1) return;
 
 		// Test for grid block overlaps
 		if (this.checkIfOverlapsGridBlocks({ matrix: newMatrix })) return;
@@ -66,7 +64,6 @@ export default class Tetromino
 		// Rotation is sucessful
 		this.rotation = newRotationIndex
 		this.currentMatrix = newMatrix;
-		this.lowestY = newLowestY;
 		this.boundingIndices = newBoundingIndices;
 	}
 	move(direction)
@@ -108,29 +105,37 @@ export default class Tetromino
 	}
 }
 
-function getLowestY(matrix)
+function getBoundingIndices(matrix)
 {
-	let lowestY = 0;
-	for (let j = 1; j < matrix.length; j++)
-	{
-		if (matrix[j].some(v => v)) lowestY = j;
-	}
-	return lowestY;
-}
-
-function getLeftRightBoundingIndices(matrix)
-{
-	const setCells = new Array(matrix[0].length).fill(false);
+	const horizontalCells = [];
 	for (const row of matrix)
 	{
 		for (let i = 0; i < row.length; i++)
 		{
-			if (row[i]) setCells[i] = true;
+			if (row[i]) horizontalCells[i] = true;
 		}
 	}
+
+	const verticalCells = [];
+	for (let j = 0; j < matrix.length; j++)
+	{
+		let hasCell = false;
+		for (const cell of matrix[j])
+		{
+			if (cell)
+			{
+				hasCell = true;
+				break;
+			}
+		}
+		verticalCells[j] = hasCell;
+	}
+
 	return {
-		left: setCells.findIndex(v => v),
-		right: setCells.length - 1 - setCells.reverse().findIndex(v => v),
+		left: horizontalCells.findIndex(v => v),
+		right: horizontalCells.length - 1 - horizontalCells.reverse().findIndex(v => v),
+		top: verticalCells.findIndex(v => v),
+		bottom: verticalCells.length - 1 - verticalCells.reverse().findIndex(v => v),
 	};
 }
 
