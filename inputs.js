@@ -1,7 +1,8 @@
 export default class InputHandler
 {
-	constructor()
+	constructor(element = document.body)
 	{
+		this.element = element;
 		this.actionKeyPairs = {};
 		this.conflictingActions = [];
 		this.keyDownEvent = e =>
@@ -24,8 +25,9 @@ export default class InputHandler
 				if (conflicts.includes(action)) this[key] = null;
 			}
 		}
-		document.addEventListener('keydown', this.keyDownEvent);
-		document.addEventListener('keyup', this.keyUpEvent);
+		element.setAttribute('tabindex', 0);
+		element.addEventListener('keydown', this.keyDownEvent);
+		element.addEventListener('keyup', this.keyUpEvent);
 	}
 	addAction(action, key)
 	{
@@ -57,7 +59,7 @@ export default class InputHandler
 	}
 	destroy()
 	{
-		document.removeEventListener('keydown', this.keyDownEvent);
-		document.removeEventListener('keyup', this.keyUpEvent);
+		element.removeEventListener('keydown', this.keyDownEvent);
+		element.removeEventListener('keyup', this.keyUpEvent);
 	}
 }

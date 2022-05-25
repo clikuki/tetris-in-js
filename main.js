@@ -9,7 +9,7 @@ canvas.height = grid.height * grid.cellSize;
 document.body.append(canvas);
 
 let currentTetromino = Tetromino.getRandom(grid);
-const inputHandler = new InputHandler();
+const inputHandler = new InputHandler(canvas);
 inputHandler.addActions({
 	left: 'a',
 	right: 'd',
