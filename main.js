@@ -26,6 +26,9 @@ tetrominoHolderCanvas.height = grid.cellSize * 5;
 thctx.fillStyle = 'black';
 thctx.fillRect(0, 0, tetrominoHolderCanvas.width, tetrominoHolderCanvas.height);
 
+const scoreDisplay = document.querySelector('.scoreDisplay');
+let score = 0;
+
 let currentTetromino = Tetromino.getRandom(grid);
 const inputHandler = new InputHandler(canvas);
 inputHandler.addActions({
@@ -182,13 +185,16 @@ function loop(t)
 	{
 		hasHardDrop = true;
 		currentTetromino.fall(true);
-		if (grid.addTetromino(currentTetromino))
+		const newPoints = grid.addTetromino(currentTetromino);
+		if (typeof newPoints !== 'number')
 		{
 			currentTetromino = null;
 			gameOver = true;
 		}
 		else
 		{
+			score += newPoints;
+			scoreDisplay.textContent = `score: ${score}`;
 			currentTetromino = nextTetromino;
 			nextTetromino = Tetromino.getRandom(grid);
 			ntctx.fillStyle = 'black';
@@ -216,13 +222,16 @@ function loop(t)
 				if (manualLockHeld || t - lastTouchedBottom > lockDelay)
 				{
 					lastTouchedBottom = null;
-					if (grid.addTetromino(currentTetromino))
+					const newPoints = grid.addTetromino(currentTetromino);
+					if (typeof newPoints !== 'number')
 					{
 						currentTetromino = null;
 						gameOver = true;
 					}
 					else
 					{
+						score += newPoints;
+						scoreDisplay.textContent = `score: ${score}`;
 						currentTetromino = nextTetromino;
 						nextTetromino = Tetromino.getRandom(grid);
 						ntctx.fillStyle = 'black';

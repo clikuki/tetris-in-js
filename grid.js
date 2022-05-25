@@ -6,6 +6,8 @@ export default class Grid extends Array
 		this.width = width;
 		this.height = height;
 		this.cellSize = cellSize;
+		this.lastClearIsTetris = false;
+		this.combo = -1;
 		for (let j = 0; j < height; j++)
 		{
 			this[j] = new Array(width).fill(0);
@@ -36,16 +38,48 @@ export default class Grid extends Array
 
 		if (hasHitTop) return 'HIT TOP';
 
-		let lineCleared = false;
+		let linesCleared = 0;
 		for (const rowIndex of [...updatedRowIndices].sort((a, b) => b - a))
 		{
 			if (this[rowIndex].every(v => v))
 			{
-				lineCleared = true;
+				linesCleared++;
 				this.splice(rowIndex, 1);
 			}
 		}
-		if (lineCleared) this.unshift(...new Array(this.height - this.length).fill(0).map(() => new Array(this.width).fill(0)));
+		let score = 0;
+		if (linesCleared)
+		{
+			this.unshift(...new Array(this.height - this.length).fill(0).map(() => new Array(this.width).fill(0)))
+			score = 50 * ++this.combo;
+			switch (linesCleared)
+			{
+				case 1:
+					this.lastClearIsTetris = false;
+					score += 100;
+					break;
+				case 2:
+					this.lastClearIsTetris = false;
+					score += 300;
+					break;
+				case 3:
+					this.lastClearIsTetris = false;
+					score += 500;
+					break;
+				case 4:
+					{
+						let pointsToAdd = 800;
+						if (this.lastClearIsTetris) pointsToAdd *= 1.5;
+						this.lastClearIsTetris = true;
+						score += pointsToAdd;
+						break;
+					}
+				default:
+					break;
+			}
+		}
+		else this.combo = -1;
+		return score;
 	}
 	draw(ctx)
 	{
