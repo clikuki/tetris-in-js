@@ -68,19 +68,15 @@ export default class Tetromino
 				this.topX + xOffset + newBoundingIndices.right >= this.grid.width ||
 				this.topY + yOffset + newBoundingIndices.bottom >= this.grid.height ||
 				this.checkIfOverlapsGridBlocks({ matrix: newMatrix, topY: this.topY + yOffset, topX: this.topX + xOffset })
-			)
-			{
-				console.log(`[${xOffset * direction},${yOffset * direction}] failed`);
-				continue
-			};
+			) continue;
 
 			// Rotation is sucessful
-			console.log(`[${xOffset * direction},${yOffset * direction}] succeeded`);
 			this.rotation = newRotationIndex
 			this.currentMatrix = newMatrix;
 			this.boundingIndices = newBoundingIndices;
 			this.topX += xOffset;
 			this.topY += yOffset;
+			this.isTouchingBottom = this.checkIfBottomTouchesGround();
 			break;
 		}
 	}
