@@ -1,6 +1,6 @@
 import Grid from "./grid.js";
 import InputHandler from "./inputs.js";
-import Tetromino from "./tetromino.js";
+import Tetromino, { neutralBlock } from "./tetromino.js";
 const canvas = document.createElement('canvas');
 const ctx = canvas.getContext('2d', { alpha: false });
 const grid = new Grid(10, 20, 30);

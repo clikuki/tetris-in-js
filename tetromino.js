@@ -18,10 +18,9 @@ export default class Tetromino
 		this.topX = Math.ceil((this.grid.width / 2) - (this.currentMatrix[0].length / 2));
 		this.topY = -this.currentMatrix.length;
 	}
-	checkIfBottomTouchesGround({ matrix = this.currentMatrix, boundingIndices = this.boundingIndices, topY = this.topY } = {})
+	checkIfBottomTouchesGround()
 	{
-		// console.log(topY);
-		return topY + boundingIndices.bottom >= this.grid.height - 1 || this.checkIfOverlapsGridBlocks({ topY: topY + 1, matrix });
+		return this.topY + this.boundingIndices.bottom >= this.grid.height - 1 || this.checkIfOverlapsGridBlocks({ topY: this.topY + 1 });
 	}
 	checkIfOverlapsGridBlocks({ topX = this.topX, topY = this.topY, matrix = this.currentMatrix })
 	{
@@ -32,7 +31,6 @@ export default class Tetromino
 			for (let i = 0; i < row.length; i++)
 			{
 				if (i + topX < 0 || i + topX >= this.grid.width) continue;
-				// console.log(j + topY)
 				if (row[i] && this.grid[j + topY][i + topX]) return true;
 			}
 		}
@@ -62,22 +60,22 @@ export default class Tetromino
 			this.kickData ? this.kickData[kickIndex].map(([x, y]) => [x * direction, y * direction]) : []
 		);
 
-		for (const [xOffset, yOffset] of kickOffsets)
+		console.log(`Attempting ${direction === -1 ? 'counter' : ''}clockwise rotation`)
+		for (const [xOffset, yOffset] of kickOffsets.slice())
 		{
-			// Test for overlap against grid walls
 			if (
 				this.topX + xOffset + newBoundingIndices.left < 0 ||
-				this.topX + xOffset + newBoundingIndices.right >= this.grid.width
-			) continue;
-
-			// Test for overlap against grid floor
-			// if (this.topY + yOffset + this.boundingIndices.bottom >= this.grid.height - 1) return;
-			if (this.checkIfBottomTouchesGround({ matrix: newMatrix, boundingIndices: newBoundingIndices, topY: this.topY + yOffset })) continue;
-
-			// Test for grid block overlaps
-			if (this.checkIfOverlapsGridBlocks({ matrix: newMatrix, topY: this.topY + yOffset, topX: this.topX + xOffset })) continue;
+				this.topX + xOffset + newBoundingIndices.right >= this.grid.width ||
+				this.topY + yOffset + newBoundingIndices.bottom >= this.grid.height ||
+				this.checkIfOverlapsGridBlocks({ matrix: newMatrix, topY: this.topY + yOffset, topX: this.topX + xOffset })
+			)
+			{
+				console.log(`[${xOffset * direction},${yOffset * direction}] failed`);
+				continue
+			};
 
 			// Rotation is sucessful
+			console.log(`[${xOffset * direction},${yOffset * direction}] succeeded`);
 			this.rotation = newRotationIndex
 			this.currentMatrix = newMatrix;
 			this.boundingIndices = newBoundingIndices;
@@ -231,6 +229,9 @@ function getImage(color)
 	c.fill();
 	return image;
 }
+
+// Used for testing out positions by filling cells in
+export const neutralBlock = getImage('#999');
 
 // Wall kick data for J,L,S,T,Z shapes
 const kickDataForMostTetrominos = [
