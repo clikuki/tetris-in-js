@@ -9,22 +9,49 @@ canvas.height = grid.height * grid.cellSize;
 canvas.classList.add('game')
 document.body.append(canvas);
 
-const nextTetrominoCanvas = document.querySelector('.nextTetromino');
-const ntctx = nextTetrominoCanvas.getContext('2d', { alpha: false });
-let nextTetromino = Tetromino.getRandom(grid);
-nextTetrominoCanvas.width = grid.cellSize * 5;
-nextTetrominoCanvas.height = grid.cellSize * 5;
-ntctx.fillStyle = 'black';
-ntctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
-nextTetromino.draw(ntctx, nextTetrominoCanvas);
+class TetrominoDisplay
+{
+	constructor(canvas, cellSize, startTetromino = null)
+	{
+		this.canvas = canvas;
+		this.ctx = canvas.getContext('2d', { alpha: false });
+		this.tetromino = startTetromino;
+		canvas.width = cellSize * 5;
+		canvas.height = cellSize * 5;
+		this.clearCanvas();
+		if (startTetromino)
+		{
+			startTetromino.resetPosition();
+			startTetromino.draw(this.ctx, this.canvas);
+		}
+	}
+	swap(tetromino)
+	{
+		if (tetromino) tetromino.resetPosition();
+		const tmp = this.tetromino;
+		this.tetromino = tetromino;
+		return tmp;
+	}
+	clearCanvas()
+	{
+		this.ctx.fillStyle = 'black';
+		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+	}
+	darken()
+	{
+		this.ctx.fillStyle = '#333a';
+		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+	}
+	draw()
+	{
+		this.clearCanvas();
+		if (this.tetromino) this.tetromino.draw(this.ctx, this.canvas);
+	}
+}
 
-const tetrominoHolderCanvas = document.querySelector('.holder');
-const thctx = tetrominoHolderCanvas.getContext('2d', { alpha: false });
-let heldTetromino = null;
-tetrominoHolderCanvas.width = grid.cellSize * 5;
-tetrominoHolderCanvas.height = grid.cellSize * 5;
-thctx.fillStyle = 'black';
-thctx.fillRect(0, 0, tetrominoHolderCanvas.width, tetrominoHolderCanvas.height);
+const nextTetromino = new TetrominoDisplay(document.querySelector('.nextTetromino'), grid.cellSize, Tetromino.getRandom(grid));
+const heldTetromino = new TetrominoDisplay(document.querySelector('.holder'), grid.cellSize);
+heldTetromino.canSwap = true;
 
 const scoreDisplay = document.querySelector('.scoreDisplay');
 let score = 0;
@@ -43,6 +70,44 @@ inputHandler.addActions({
 })
 inputHandler.setConflictingActions(['left', 'right'], 'direction');
 inputHandler.setConflictingActions(['rotateLeft', 'rotateRight'], 'rotationDirection');
+
+function gameOverStuff()
+{
+	currentTetromino = null;
+	gameOver = true;
+	ctx.fillStyle = '#333333aa';
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+	ctx.fillStyle = 'black';
+	ctx.strokeStyle = 'white';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.font = ctx.font.replace(/\d+px/, '48px');
+	ctx.strokeText('GAME OVER', canvas.width / 2, canvas.height / 2);
+	ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+	ctx.font = ctx.font.replace(/\d+px/, '30px');
+	ctx.lineWidth = 1;
+	ctx.strokeText('Press R to restart', canvas.width / 2, canvas.height / 2 + 48);
+	ctx.fillText('Press R to restart', canvas.width / 2, canvas.height / 2 + 48);
+}
+
+function lockTetromino()
+{
+	const newPoints = grid.addTetromino(currentTetromino);
+	if (typeof newPoints !== 'number') gameOverStuff();
+	else
+	{
+		score += newPoints;
+		scoreDisplay.textContent = `score: ${score}`;
+		const randomTetromino = Tetromino.getRandom(grid);
+		currentTetromino = nextTetromino.swap(randomTetromino);
+		nextTetromino.draw();
+		if (heldTetromino)
+		{
+			heldTetromino.canSwap = true;
+			heldTetromino.draw();
+		}
+	}
+}
 
 const rotateLongDelay = 1000 / 5;
 const rotateShortDelay = 1000 / 15;
@@ -65,45 +130,21 @@ let softDropMode = false;
 let dropThen = 0;
 let hasHardDrop = false;
 let holdKeyPressed = false;
-let canSwapHeldTetromino = true;
 
 let gameOver = false;
-let hasDrawnGameOver = false;
 function loop(t)
 {
 	requestAnimationFrame(loop);
 	if (gameOver)
 	{
-		if (!hasDrawnGameOver)
-		{
-			ctx.fillStyle = '#333333aa';
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
-			ctx.fillStyle = 'black';
-			ctx.strokeStyle = 'white';
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'middle';
-			ctx.font = ctx.font.replace(/\d+px/, '48px');
-			ctx.strokeText('GAME OVER', canvas.width / 2, canvas.height / 2);
-			ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
-			ctx.font = ctx.font.replace(/\d+px/, '30px');
-			ctx.lineWidth = 1;
-			ctx.strokeText('Press R to restart', canvas.width / 2, canvas.height / 2 + 48);
-			ctx.fillText('Press R to restart', canvas.width / 2, canvas.height / 2 + 48);
-			hasDrawnGameOver = true;
-		}
-		else if (inputHandler.restart)
+		if (inputHandler.restart)
 		{
 			grid.empty();
 			currentTetromino = Tetromino.getRandom(grid);
-			heldTetromino = null;
-			thctx.fillStyle = 'black';
-			thctx.fillRect(0, 0, tetrominoHolderCanvas.width, tetrominoHolderCanvas.height);
-			nextTetromino = Tetromino.getRandom(grid,);
-			ntctx.fillStyle = 'black';
-			ntctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
-			nextTetromino.draw(ntctx, nextTetrominoCanvas);
+			nextTetromino.swap(Tetromino.getRandom(grid));
+			nextTetromino.draw();
+			heldTetromino.swap(null);
 			gameOver = false;
-			hasDrawnGameOver = false;
 		}
 		return;
 	}
@@ -157,25 +198,19 @@ function loop(t)
 
 		if (inputHandler.hold)
 		{
-			if (!holdKeyPressed && canSwapHeldTetromino)
+			if (!holdKeyPressed && heldTetromino.canSwap)
 			{
 				holdKeyPressed = true;
-				canSwapHeldTetromino = false;
-				[heldTetromino, currentTetromino] = [currentTetromino, heldTetromino];
+				heldTetromino.canSwap = false;
+				currentTetromino = heldTetromino.swap(currentTetromino);
+				heldTetromino.draw();
+				heldTetromino.darken();
 				if (!currentTetromino)
 				{
-					currentTetromino = nextTetromino;
-					nextTetromino = Tetromino.getRandom(grid);
-					ntctx.fillStyle = 'black';
-					ntctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
-					nextTetromino.draw(ntctx, nextTetrominoCanvas);
+					const randomTetromino = Tetromino.getRandom(grid);
+					currentTetromino = nextTetromino.swap(randomTetromino);
+					nextTetromino.draw();
 				}
-				heldTetromino.resetPosition();
-				thctx.fillStyle = 'black';
-				thctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
-				heldTetromino.draw(thctx, tetrominoHolderCanvas);
-				thctx.fillStyle = '#333333aa';
-				thctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
 			}
 		}
 		else holdKeyPressed = false;
@@ -186,29 +221,7 @@ function loop(t)
 	{
 		hasHardDrop = true;
 		currentTetromino.fall(true);
-		const newPoints = grid.addTetromino(currentTetromino);
-		if (typeof newPoints !== 'number')
-		{
-			currentTetromino = null;
-			gameOver = true;
-		}
-		else
-		{
-			score += newPoints;
-			scoreDisplay.textContent = `score: ${score}`;
-			currentTetromino = nextTetromino;
-			nextTetromino = Tetromino.getRandom(grid);
-			ntctx.fillStyle = 'black';
-			ntctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
-			nextTetromino.draw(ntctx, nextTetrominoCanvas);
-			if (heldTetromino)
-			{
-				canSwapHeldTetromino = true;
-				thctx.fillStyle = 'black';
-				thctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
-				heldTetromino.draw(thctx, tetrominoHolderCanvas);
-			}
-		}
+		lockTetromino();
 	}
 	else
 	{
@@ -224,30 +237,7 @@ function loop(t)
 				if ((manualLockHeld && !softDropMode) || t - lastTouchedBottom > lockDelay)
 				{
 					lastTouchedBottom = null;
-					const newPoints = grid.addTetromino(currentTetromino);
-					if (typeof newPoints !== 'number')
-					{
-						currentTetromino = null;
-						gameOver = true;
-					}
-					else
-					{
-						softDropMode = false;
-						score += newPoints;
-						scoreDisplay.textContent = `score: ${score}`;
-						currentTetromino = nextTetromino;
-						nextTetromino = Tetromino.getRandom(grid);
-						ntctx.fillStyle = 'black';
-						ntctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
-						nextTetromino.draw(ntctx, nextTetrominoCanvas);
-						if (heldTetromino)
-						{
-							canSwapHeldTetromino = true;
-							thctx.fillStyle = 'black';
-							thctx.fillRect(0, 0, nextTetrominoCanvas.width, nextTetrominoCanvas.height);
-							heldTetromino.draw(thctx, tetrominoHolderCanvas);
-						}
-					}
+					lockTetromino();
 				}
 			}
 			else lastTouchedBottom = null;
