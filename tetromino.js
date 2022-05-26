@@ -176,7 +176,7 @@ function getBoundingIndices(matrix)
 	};
 }
 
-function getImage(h, s, l)
+function getImage(color)
 {
 	const distFromEdge = 10;
 	const image = document.createElement('canvas');
@@ -184,16 +184,16 @@ function getImage(h, s, l)
 	const size = 100;
 	image.width = size;
 	image.height = size;
-	c.fillStyle = `hsl(${h},${s}%,${l}%)`;
+	c.fillStyle = color;
 	c.fillRect(0, 0, size, size);
-	c.fillStyle = `hsl(${h},${s}%,${Math.min(l + 20, 100)}%)`;
+	c.fillStyle = '#fff5';
 	c.beginPath();
 	c.moveTo(0, 0);
 	c.lineTo(distFromEdge, distFromEdge);
 	c.lineTo(size - distFromEdge, distFromEdge);
 	c.lineTo(size, 0);
 	c.fill();
-	c.fillStyle = `hsl(${h},${s}%,${Math.max(l - 10, 0)}%)`;
+	c.fillStyle = '#0003';
 	c.beginPath();
 	c.moveTo(0, 0);
 	c.lineTo(distFromEdge, distFromEdge);
@@ -204,7 +204,7 @@ function getImage(h, s, l)
 	c.lineTo(size - distFromEdge, size - distFromEdge);
 	c.lineTo(size, size);
 	c.fill();
-	c.fillStyle = `hsl(${h},${s}%,${Math.max(l - 30, 0)}%)`;
+	c.fillStyle = '#0006';
 	c.beginPath();
 	c.moveTo(0, size);
 	c.lineTo(distFromEdge, size - distFromEdge);
@@ -217,7 +217,7 @@ function getImage(h, s, l)
 const presets = [
 	{	// I-Shape
 		// color: '#00f0f0',
-		image: getImage(180, 100, 47),
+		image: getImage('#00f0f0'),
 		matrices: [
 			[
 				[0, 0, 0, 0],
@@ -247,7 +247,7 @@ const presets = [
 	},
 	{
 		// color: '#0000f0',
-		image: getImage(240, 100, 47),
+		image: getImage('#0000f0'),
 		matrices: [
 			[
 				[1, 0, 0],
@@ -273,7 +273,7 @@ const presets = [
 	},
 	{
 		// color: '#f0a000',
-		image: getImage(40, 100, 47),
+		image: getImage('#f0a000'),
 		matrices: [
 			[
 				[0, 0, 1],
@@ -299,7 +299,7 @@ const presets = [
 	},
 	{
 		// color: '#f0f000',
-		image: getImage(60, 100, 47),
+		image: getImage('#f0f000'),
 		matrices: [
 			[
 				[1, 1],
@@ -309,7 +309,7 @@ const presets = [
 	},
 	{
 		// color: '#00f000',
-		image: getImage(120, 100, 47),
+		image: getImage('#00f000'),
 		matrices: [
 			[
 				[0, 1, 1],
@@ -335,7 +335,7 @@ const presets = [
 	},
 	{
 		// color: '#a000f0',
-		image: getImage(280, 100, 47),
+		image: getImage('#a000f0'),
 		matrices: [
 			[
 				[0, 1, 0],
@@ -361,7 +361,7 @@ const presets = [
 	},
 	{
 		// color: '#f00000',
-		image: getImage(0, 100, 47),
+		image: getImage('#f00000'),
 		matrices: [
 			[
 				[1, 1, 0],
