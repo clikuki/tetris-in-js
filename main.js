@@ -19,11 +19,7 @@ class TetrominoDisplay
 		canvas.width = cellSize * 5;
 		canvas.height = cellSize * 5;
 		this.clearCanvas();
-		if (startTetromino)
-		{
-			startTetromino.resetPosition();
-			startTetromino.draw(this.ctx, this.canvas);
-		}
+		if (startTetromino) startTetromino.resetPosition();
 	}
 	swap(tetromino)
 	{
@@ -71,10 +67,12 @@ inputHandler.addActions({
 inputHandler.setConflictingActions(['left', 'right'], 'direction');
 inputHandler.setConflictingActions(['rotateLeft', 'rotateRight'], 'rotationDirection');
 
-function gameOverStuff()
+function gameOver()
 {
 	currentTetromino = null;
-	gameOver = true;
+	isGameOver = true;
+	nextTetromino.clearCanvas();
+	heldTetromino.clearCanvas();
 	ctx.fillStyle = '#333333aa';
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 	ctx.fillStyle = 'black';
@@ -90,10 +88,29 @@ function gameOverStuff()
 	ctx.fillText('Press R to restart', canvas.width / 2, canvas.height / 2 + 48);
 }
 
+function startScreen()
+{
+	ctx.fillStyle = '#333333aa';
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+	ctx.fillStyle = 'black';
+	ctx.strokeStyle = 'white';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.font = ctx.font.replace(/\d+px/, '40px');
+	ctx.strokeText('Press', canvas.width / 2, canvas.height / 2 - 50);
+	ctx.fillText('Press', canvas.width / 2, canvas.height / 2 - 50);
+	ctx.font = ctx.font.replace(/\d+px/, '50px');
+	ctx.strokeText('R', canvas.width / 2, canvas.height / 2);
+	ctx.fillText('R', canvas.width / 2, canvas.height / 2);
+	ctx.font = ctx.font.replace(/\d+px/, '40px');
+	ctx.strokeText('to start', canvas.width / 2, canvas.height / 2 + 50);
+	ctx.fillText('to start', canvas.width / 2, canvas.height / 2 + 50);
+}
+
 function lockTetromino()
 {
 	const newPoints = grid.addTetromino(currentTetromino);
-	if (typeof newPoints !== 'number') gameOverStuff();
+	if (typeof newPoints !== 'number') gameOver();
 	else
 	{
 		score += newPoints;
@@ -131,11 +148,23 @@ let dropThen = 0;
 let hasHardDrop = false;
 let holdKeyPressed = false;
 
-let gameOver = false;
+let isGameOver = false;
+let hasStarted = false;
 function loop(t)
 {
 	requestAnimationFrame(loop);
-	if (gameOver)
+
+	if (!hasStarted)
+	{
+		if (inputHandler.restart)
+		{
+			hasStarted = true;
+			nextTetromino.draw();
+		}
+		return
+	};
+
+	if (isGameOver)
 	{
 		if (inputHandler.restart)
 		{
@@ -144,7 +173,7 @@ function loop(t)
 			nextTetromino.swap(Tetromino.getRandom(grid));
 			nextTetromino.draw();
 			heldTetromino.swap(null);
-			gameOver = false;
+			isGameOver = false;
 		}
 		return;
 	}
@@ -246,4 +275,5 @@ function loop(t)
 		if (!hardDropKeyPressed) hasHardDrop = false;
 	}
 }
+startScreen();
 requestAnimationFrame(loop)
