@@ -88,24 +88,27 @@ export default class Tetromino
 	}
 	draw(ctx, canvasToCenterAround)
 	{
-		for (let j = 0; j < this.currentMatrix.length; j++)
+		let matrix = this.currentMatrix;
+		if (canvasToCenterAround) matrix = this.currentMatrix
+			.slice(this.boundingIndices.top, this.boundingIndices.bottom + 1)
+			.map(row => row.slice(this.boundingIndices.left, this.boundingIndices.right + 1));
+
+		for (let j = 0; j < matrix.length; j++)
 		{
-			const row = this.currentMatrix[j];
+			const row = matrix[j];
 			for (let i = 0; i < row.length; i++)
 			{
 				if (row[i])
 				{
 					let x = (i + this.topX) * this.grid.cellSize;
 					let y = (j + this.topY) * this.grid.cellSize;
-
 					if (canvasToCenterAround)
 					{
-						const xPad = (this.currentMatrix[0].length * this.grid.cellSize - canvasToCenterAround.width) / 2;
-						const yPad = (this.currentMatrix.length * this.grid.cellSize - canvasToCenterAround.height) / 2;
+						const xPad = (matrix[0].length * this.grid.cellSize - canvasToCenterAround.width) / 2;
+						const yPad = (matrix.length * this.grid.cellSize - canvasToCenterAround.height) / 2;
 						x = i * this.grid.cellSize - xPad;
 						y = j * this.grid.cellSize - yPad;
 					}
-
 					ctx.drawImage(this.image, x, y, this.grid.cellSize, this.grid.cellSize);
 				}
 			}
