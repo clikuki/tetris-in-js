@@ -8,5 +8,4 @@ A simple tetris clone in Javascript.
 - tetromino rotate around center of piece
 - Tetromino holding
 - Next tetromino preview
-### Todo
-- Add wall and floor kicks
+- SRS-type wall kicks

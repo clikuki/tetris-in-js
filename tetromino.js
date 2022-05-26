@@ -1,8 +1,9 @@
 export default class Tetromino
 {
-	constructor(grid, matrices, image)
+	constructor(grid, matrices, kickData, image)
 	{
 		this.matrices = matrices;
+		this.kickData = kickData;
 		this.rotation = 0;
 		this.currentMatrix = matrices[this.rotation];
 		this.image = image;
@@ -17,18 +18,21 @@ export default class Tetromino
 		this.topX = Math.ceil((this.grid.width / 2) - (this.currentMatrix[0].length / 2));
 		this.topY = -this.currentMatrix.length;
 	}
-	checkIfBotttomTouchesGround()
+	checkIfBottomTouchesGround({ matrix = this.currentMatrix, boundingIndices = this.boundingIndices, topY = this.topY } = {})
 	{
-		return this.topY + this.boundingIndices.bottom >= this.grid.height - 1 || this.checkIfOverlapsGridBlocks({ topY: this.topY + 1 });
+		// console.log(topY);
+		return topY + boundingIndices.bottom >= this.grid.height - 1 || this.checkIfOverlapsGridBlocks({ topY: topY + 1, matrix });
 	}
 	checkIfOverlapsGridBlocks({ topX = this.topX, topY = this.topY, matrix = this.currentMatrix })
 	{
 		for (let j = 0; j < matrix.length; j++)
 		{
+			if (j + topY < 0 || j + topY >= this.grid.height) continue;
 			const row = matrix[j];
 			for (let i = 0; i < row.length; i++)
 			{
-				if (j + topY < 0) continue;
+				if (i + topX < 0 || i + topX >= this.grid.width) continue;
+				// console.log(j + topY)
 				if (row[i] && this.grid[j + topY][i + topX]) return true;
 			}
 		}
@@ -37,7 +41,7 @@ export default class Tetromino
 	{
 		do
 		{
-			if (this.checkIfBotttomTouchesGround())
+			if (this.checkIfBottomTouchesGround())
 			{
 				this.isTouchingBottom = true;
 				break;
@@ -45,7 +49,6 @@ export default class Tetromino
 			else this.topY++;
 		} while (hardDrop);
 	}
-	// TODO: Implement wall and floor kicks
 	rotate(direction)
 	{
 		if (typeof direction !== 'number') return 'Invalid direction';
@@ -54,22 +57,34 @@ export default class Tetromino
 		const newMatrix = this.matrices[newRotationIndex]
 		const newBoundingIndices = getBoundingIndices(newMatrix);
 
-		// Test for overlap against grid walls
-		if (
-			this.topX + newBoundingIndices.left < 0 ||
-			this.topX + newBoundingIndices.right >= this.grid.width
-		) return;
+		const kickIndex = (this.rotation - (direction === 1 ? 0 : 1) + this.matrices.length) % this.matrices.length;
+		const kickOffsets = [[0, 0]].concat(
+			this.kickData ? this.kickData[kickIndex].map(([x, y]) => [x * direction, y * direction]) : []
+		);
 
-		// Test for overlap against grid floor
-		if (this.topY + this.boundingIndices.bottom >= this.grid.height - 1) return;
+		for (const [xOffset, yOffset] of kickOffsets)
+		{
+			// Test for overlap against grid walls
+			if (
+				this.topX + xOffset + newBoundingIndices.left < 0 ||
+				this.topX + xOffset + newBoundingIndices.right >= this.grid.width
+			) continue;
 
-		// Test for grid block overlaps
-		if (this.checkIfOverlapsGridBlocks({ matrix: newMatrix })) return;
+			// Test for overlap against grid floor
+			// if (this.topY + yOffset + this.boundingIndices.bottom >= this.grid.height - 1) return;
+			if (this.checkIfBottomTouchesGround({ matrix: newMatrix, boundingIndices: newBoundingIndices, topY: this.topY + yOffset })) continue;
 
-		// Rotation is sucessful
-		this.rotation = newRotationIndex
-		this.currentMatrix = newMatrix;
-		this.boundingIndices = newBoundingIndices;
+			// Test for grid block overlaps
+			if (this.checkIfOverlapsGridBlocks({ matrix: newMatrix, topY: this.topY + yOffset, topX: this.topX + xOffset })) continue;
+
+			// Rotation is sucessful
+			this.rotation = newRotationIndex
+			this.currentMatrix = newMatrix;
+			this.boundingIndices = newBoundingIndices;
+			this.topX += xOffset;
+			this.topY += yOffset;
+			break;
+		}
 	}
 	move(direction)
 	{
@@ -83,7 +98,7 @@ export default class Tetromino
 		)
 		{
 			this.topX = newX;
-			this.isTouchingBottom = this.checkIfBotttomTouchesGround();
+			this.isTouchingBottom = this.checkIfBottomTouchesGround();
 		}
 	}
 	draw(ctx, canvasToCenterAround)
@@ -138,8 +153,8 @@ export default class Tetromino
 		}
 
 		const index = indicesBucket.pop();
-		const { image, matrices } = presets[index];
-		return new Tetromino(grid, matrices, image);
+		const { image, matrices, kickData } = presets[index];
+		return new Tetromino(grid, matrices, kickData, image);
 	}
 }
 
@@ -217,9 +232,36 @@ function getImage(color)
 	return image;
 }
 
+// Wall kick data for J,L,S,T,Z shapes
+const kickDataForMostTetrominos = [
+	[
+		[-1, 0],
+		[-1, -1],
+		[0, 2],
+		[-1, 2],
+	],
+	[
+		[1, 0],
+		[1, 1],
+		[0, -2],
+		[1, -2],
+	],
+	[
+		[1, 0],
+		[1, -1],
+		[0, 2],
+		[1, 2],
+	],
+	[
+		[-1, 0],
+		[-1, 1],
+		[0, -2],
+		[-1, -2],
+	],
+];
+
 const presets = [
 	{	// I-Shape
-		// color: '#00f0f0',
 		image: getImage('#00f0f0'),
 		matrices: [
 			[
@@ -246,10 +288,35 @@ const presets = [
 				[0, 1, 0, 0],
 				[0, 1, 0, 0],
 			],
-		]
+		],
+		kickData: [
+			[
+				[-2, 0],
+				[1, 0],
+				[-2, 1],
+				[1, -2],
+			],
+			[
+				[-1, 0],
+				[2, 0],
+				[-1, -2],
+				[2, 1],
+			],
+			[
+				[2, 0],
+				[-1, 0],
+				[2, -1],
+				[-1, 2],
+			],
+			[
+				[1, 0],
+				[-2, 0],
+				[1, 2],
+				[-2, -1],
+			],
+		],
 	},
-	{
-		// color: '#0000f0',
+	{	// J-Shape
 		image: getImage('#0000f0'),
 		matrices: [
 			[
@@ -272,10 +339,10 @@ const presets = [
 				[0, 1, 0],
 				[1, 1, 0],
 			],
-		]
+		],
+		kickData: kickDataForMostTetrominos,
 	},
-	{
-		// color: '#f0a000',
+	{	// L-Shape
 		image: getImage('#f0a000'),
 		matrices: [
 			[
@@ -298,20 +365,20 @@ const presets = [
 				[0, 1, 0],
 				[0, 1, 0],
 			],
-		]
+		],
+		kickData: kickDataForMostTetrominos,
 	},
-	{
-		// color: '#f0f000',
+	{	// O-Shape
 		image: getImage('#f0f000'),
 		matrices: [
 			[
 				[1, 1],
 				[1, 1],
 			],
-		]
+		],
+		kickData: null,
 	},
-	{
-		// color: '#00f000',
+	{	// S-Shape
 		image: getImage('#00f000'),
 		matrices: [
 			[
@@ -334,10 +401,10 @@ const presets = [
 				[1, 1, 0],
 				[0, 1, 0],
 			],
-		]
+		],
+		kickData: kickDataForMostTetrominos,
 	},
-	{
-		// color: '#a000f0',
+	{	// T-Shape
 		image: getImage('#a000f0'),
 		matrices: [
 			[
@@ -360,10 +427,10 @@ const presets = [
 				[1, 1, 0],
 				[0, 1, 0],
 			],
-		]
+		],
+		kickData: kickDataForMostTetrominos,
 	},
-	{
-		// color: '#f00000',
+	{	// Z-Shape
 		image: getImage('#f00000'),
 		matrices: [
 			[
@@ -386,6 +453,7 @@ const presets = [
 				[1, 1, 0],
 				[1, 0, 0],
 			],
-		]
+		],
+		kickData: kickDataForMostTetrominos,
 	},
 ]
