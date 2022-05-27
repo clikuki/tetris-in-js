@@ -17,7 +17,7 @@ export default class Grid extends Array
 	{
 		let hasHitTop = false;
 		const image = tetromino.image;
-		const matrix = tetromino.currentMatrix;
+		const matrix = tetromino.curMatrix;
 		const updatedRowIndices = new Set();
 		for (let j = 0; j < matrix.length; j++)
 		{

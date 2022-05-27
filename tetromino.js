@@ -5,24 +5,25 @@ export default class Tetromino
 		this.matrices = matrices;
 		this.kickData = kickData;
 		this.rotation = 0;
-		this.currentMatrix = matrices[this.rotation];
+		this.curMatrix = matrices[this.rotation];
 		this.image = image;
 		this.grid = grid;
-		this.topX = Math.ceil((grid.width / 2) - (this.currentMatrix[0].length / 2));
-		this.topY = -this.currentMatrix.length;
-		this.boundingIndices = getBoundingIndices(this.currentMatrix);
+		this.topX = Math.ceil((grid.width / 2) - (this.curMatrix[0].length / 2));
+		this.topY = -this.curMatrix.length;
+		this.boundingIndices = getBoundingIndices(this.matrices);
+		this.curBoundingIndices = this.boundingIndices[this.rotation];
 		this.isTouchingBottom = false;
 	}
 	resetPosition()
 	{
-		this.topX = Math.ceil((this.grid.width / 2) - (this.currentMatrix[0].length / 2));
-		this.topY = -this.currentMatrix.length;
+		this.topX = Math.ceil((this.grid.width / 2) - (this.curMatrix[0].length / 2));
+		this.topY = -this.curMatrix.length;
 	}
 	checkIfBottomTouchesGround()
 	{
-		return this.topY + this.boundingIndices.bottom >= this.grid.height - 1 || this.checkIfOverlapsGridBlocks({ topY: this.topY + 1 });
+		return this.topY + this.curBoundingIndices.bottom >= this.grid.height - 1 || this.checkIfOverlapsGridBlocks({ topY: this.topY + 1 });
 	}
-	checkIfOverlapsGridBlocks({ topX = this.topX, topY = this.topY, matrix = this.currentMatrix })
+	checkIfOverlapsGridBlocks({ topX = this.topX, topY = this.topY, matrix = this.curMatrix })
 	{
 		for (let j = 0; j < matrix.length; j++)
 		{
@@ -53,7 +54,7 @@ export default class Tetromino
 		if (this.matrices.length === 1) return;
 		const newRotationIndex = (this.rotation + Math.sign(direction) + this.matrices.length) % this.matrices.length;
 		const newMatrix = this.matrices[newRotationIndex]
-		const newBoundingIndices = getBoundingIndices(newMatrix);
+		const newBoundingIndices = this.boundingIndices[newRotationIndex];
 
 		const kickIndex = (this.rotation - (direction === 1 ? 0 : 1) + this.matrices.length) % this.matrices.length;
 		const kickOffsets = [[0, 0]].concat(
@@ -72,8 +73,8 @@ export default class Tetromino
 
 			// Rotation is sucessful
 			this.rotation = newRotationIndex
-			this.currentMatrix = newMatrix;
-			this.boundingIndices = newBoundingIndices;
+			this.curMatrix = newMatrix;
+			this.curBoundingIndices = newBoundingIndices;
 			this.topX += xOffset;
 			this.topY += yOffset;
 			this.isTouchingBottom = this.checkIfBottomTouchesGround();
@@ -86,8 +87,8 @@ export default class Tetromino
 		direction = Math.sign(direction);
 		const newX = this.topX + direction;
 		if (
-			newX + this.boundingIndices.left >= 0 &&
-			newX + this.boundingIndices.right < this.grid.width &&
+			newX + this.curBoundingIndices.left >= 0 &&
+			newX + this.curBoundingIndices.right < this.grid.width &&
 			!this.checkIfOverlapsGridBlocks({ topX: newX })
 		)
 		{
@@ -97,10 +98,10 @@ export default class Tetromino
 	}
 	draw(ctx, canvasToCenterAround)
 	{
-		let matrix = this.currentMatrix;
-		if (canvasToCenterAround) matrix = this.currentMatrix
-			.slice(this.boundingIndices.top, this.boundingIndices.bottom + 1)
-			.map(row => row.slice(this.boundingIndices.left, this.boundingIndices.right + 1));
+		let matrix = this.curMatrix;
+		if (canvasToCenterAround) matrix = this.curMatrix
+			.slice(this.curBoundingIndices.top, this.curBoundingIndices.bottom + 1)
+			.map(row => row.slice(this.curBoundingIndices.left, this.curBoundingIndices.right + 1));
 
 		for (let j = 0; j < matrix.length; j++)
 		{
@@ -154,38 +155,41 @@ export default class Tetromino
 
 const indicesBucket = [];
 
-function getBoundingIndices(matrix)
+function getBoundingIndices(matrices)
 {
-	const horizontalCells = [];
-	for (const row of matrix)
+	return matrices.map(matrix =>
 	{
-		for (let i = 0; i < row.length; i++)
+		const horizontalCells = [];
+		for (const row of matrix)
 		{
-			if (row[i]) horizontalCells[i] = true;
-		}
-	}
-
-	const verticalCells = [];
-	for (let j = 0; j < matrix.length; j++)
-	{
-		let hasCell = false;
-		for (const cell of matrix[j])
-		{
-			if (cell)
+			for (let i = 0; i < row.length; i++)
 			{
-				hasCell = true;
-				break;
+				if (row[i]) horizontalCells[i] = true;
 			}
 		}
-		verticalCells[j] = hasCell;
-	}
 
-	return {
-		left: horizontalCells.findIndex(v => v),
-		right: horizontalCells.length - 1 - horizontalCells.reverse().findIndex(v => v),
-		top: verticalCells.findIndex(v => v),
-		bottom: verticalCells.length - 1 - verticalCells.reverse().findIndex(v => v),
-	};
+		const verticalCells = [];
+		for (let j = 0; j < matrix.length; j++)
+		{
+			let hasCell = false;
+			for (const cell of matrix[j])
+			{
+				if (cell)
+				{
+					hasCell = true;
+					break;
+				}
+			}
+			verticalCells[j] = hasCell;
+		}
+
+		return {
+			left: horizontalCells.findIndex(v => v),
+			right: horizontalCells.length - 1 - horizontalCells.reverse().findIndex(v => v),
+			top: verticalCells.findIndex(v => v),
+			bottom: verticalCells.length - 1 - verticalCells.reverse().findIndex(v => v),
+		};
+	})
 }
 
 function getImage(color)
