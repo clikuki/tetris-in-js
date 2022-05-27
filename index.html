@@ -1,90 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<script src="main.js" type="module"></script>
-	<style>
-		body {
-			margin: 0;
-			display: grid;
-			grid-template-areas:
-				"header 	header header"
-				"sideLeft game	 sideRight"
-				"bottom 	bottom bottom"
-			;
-			grid-template-rows: 1fr auto minmax(1fr, auto);
-			grid-template-columns: 1fr auto 1fr;
-			font-family: 'Courier New', Courier, monospace;
-			background-color: #01b0b0;
-		}
-		h1
-		{
-			grid-area: header;
-			text-align: center;
-			font-size: xx-large;
-		}
-		.game {
-			grid-area: game;
-		}
-		.sideLeft {
-			grid-area: sideLeft;
-		}
-		.sideRight {
-			grid-area: sideRight;
-		}
-		[class*="side"]
-		{
-			display: flex;
-			flex-direction: column;
-			gap: 1rem;
-			align-items: center;
-		}
-		.bottom {
-			grid-area: bottom;
-			padding: 1rem;
-		}
-		.bottom > h2
-		{
-			border-bottom: 1px solid black;
-		}
-	</style>
-</head>
-<body>
-	<h1>
-		TETRIS
-	</h1>
-	<div class="sideLeft">
-		<span>Held Tetromino</span>
-		<canvas class="holder"></canvas>
-	</div>
-	<div class="sideRight">
-		<span>Next Tetromino</span>
-		<canvas class="nextTetromino"></canvas>
-		<span class="scoreDisplay">Score: 0</span>
-	</div>
-	<div class="bottom">
-		<h2>Controls</h2>
-		<ul>
-			<li>A - Move left</li>
-			<li>D - Move right</li>
-			<li>Q - Rotate left</li>
-			<li>E - Rotate right</li>
-			<li>S - Soft drop/manual lock</li>
-			<li>Spacebar - Hard drop</li>
-			<li>F - Hold tetromino</li>
-			<li>R - Restart on game over</li>
-		</ul>
-		<h2>Scoring system</h2>
-		<ul>
-			<li>Single - 100</li>
-			<li>Double - 300</li>
-			<li>Triple - 500</li>
-			<li>Tetris - 800</li>
-			<li>Combo - 50 * Combo count</li>
-			<li>T-spin - same as double cause i cant be bothered to check for t spins</li>
-		</ul>
-	</div>
-</body>
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<script src="main.js" type="module"></script>
+		<link rel="stylesheet" href="main.css" />
+	</head>
+	<body>
+		<h1>TETRIS</h1>
+		<div class="sideLeft">
+			<span>Held Tetromino</span>
+			<canvas class="holder"></canvas>
+		</div>
+		<div class="sideRight">
+			<span>Next Tetromino</span>
+			<canvas class="nextTetromino"></canvas>
+			<span class="scoreDisplay">Score: 0</span>
+		</div>
+		<div class="bottom">
+			<h2>Controls</h2>
+			<ul>
+				<li>A - Move left</li>
+				<li>D - Move right</li>
+				<li>Q - Rotate left</li>
+				<li>E - Rotate right</li>
+				<li>S - Soft drop/manual lock</li>
+				<li>Spacebar - Hard drop</li>
+				<li>F - Hold tetromino</li>
+				<li>R - Restart on game over</li>
+			</ul>
+			<h2>Scoring system</h2>
+			<ul>
+				<li>Single - 100</li>
+				<li>Double - 300</li>
+				<li>Triple - 500</li>
+				<li>Tetris - 800</li>
+				<li>Combo - 50 * Combo count</li>
+				<li>
+					T-spin - same as double cause i cant be bothered to check
+					for t spins
+				</li>
+			</ul>
+		</div>
+	</body>
 </html>
