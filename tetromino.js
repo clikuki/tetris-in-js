@@ -15,6 +15,7 @@ export default class Tetromino
 		this.boundingIndices = getBoundingIndices(this.matrices, type);
 		this.curBoundingIndices = this.boundingIndices[this.rotation];
 		this.isTouchingBottom = false;
+		this.ghostY = null;
 	}
 	resetPosition()
 	{
@@ -23,20 +24,7 @@ export default class Tetromino
 	}
 	checkIfBottomTouchesGround()
 	{
-		return this.topY + this.curBoundingIndices.bottom >= this.grid.height - 1 || this.checkIfOverlapsGridBlocks({ topY: this.topY + 1 });
-	}
-	checkIfOverlapsGridBlocks({ topX = this.topX, topY = this.topY, matrix = this.curMatrix })
-	{
-		for (let j = 0; j < matrix.length; j++)
-		{
-			if (j + topY < 0 || j + topY >= this.grid.height) continue;
-			const row = matrix[j];
-			for (let i = 0; i < row.length; i++)
-			{
-				if (i + topX < 0 || i + topX >= this.grid.width) continue;
-				if (row[i] && this.grid[j + topY][i + topX]) return true;
-			}
-		}
+		return this.topY + this.curBoundingIndices.bottom >= this.grid.height - 1 || this.grid.overlaps(this.topX, this.topY + 1, this.curMatrix);
 	}
 	fall(hardDrop)
 	{
@@ -73,7 +61,7 @@ export default class Tetromino
 				this.topX + xOffset + newBoundingIndices.left < 0 ||
 				this.topX + xOffset + newBoundingIndices.right >= this.grid.width ||
 				this.topY + yOffset + newBoundingIndices.bottom >= this.grid.height ||
-				this.checkIfOverlapsGridBlocks({ matrix: newMatrix, topY: this.topY + yOffset, topX: this.topX + xOffset })
+				this.grid.overlaps(this.topX + xOffset, this.topY + yOffset, newMatrix)
 			) continue;
 
 			// Rotation is sucessful
@@ -84,6 +72,7 @@ export default class Tetromino
 			this.topX += xOffset;
 			this.topY += yOffset;
 			this.isTouchingBottom = this.checkIfBottomTouchesGround();
+			if (this.ghostY !== null) this.ghostY = getGhostY(this.grid, this.topX, this.topY, newMatrix, newBoundingIndices);
 			break;
 		}
 	}
@@ -95,12 +84,13 @@ export default class Tetromino
 		if (
 			newX + this.curBoundingIndices.left >= 0 &&
 			newX + this.curBoundingIndices.right < this.grid.width &&
-			!this.checkIfOverlapsGridBlocks({ topX: newX })
+			!this.grid.overlaps(newX, this.topY, this.curMatrix)
 		)
 		{
 			this.lastMovement = 2;
 			this.topX = newX;
 			this.isTouchingBottom = this.checkIfBottomTouchesGround();
+			if (this.ghostY !== null) this.ghostY = getGhostY(this.grid, newX, this.topY, this.curMatrix, this.curBoundingIndices);
 		}
 	}
 	draw(ctx, canvasToCenterAround)
@@ -109,6 +99,8 @@ export default class Tetromino
 		if (canvasToCenterAround) matrix = this.curMatrix
 			.slice(this.curBoundingIndices.top, this.curBoundingIndices.bottom + 1)
 			.map(row => row.slice(this.curBoundingIndices.left, this.curBoundingIndices.right + 1));
+
+		if (!canvasToCenterAround && this.ghostY) drawGhost(ctx, this.topX, this.ghostY, this.curMatrix, this.grid.cellSize);
 
 		for (let j = 0; j < matrix.length; j++)
 		{
@@ -130,6 +122,10 @@ export default class Tetromino
 				}
 			}
 		}
+	}
+	StartGhostPiece()
+	{
+		this.ghostY = getGhostY(this.grid, this.topX, this.topY, this.curMatrix, this.curBoundingIndices);
 	}
 	static getRandom(grid)
 	{
@@ -238,6 +234,51 @@ function getImage(color)
 	c.lineTo(size, size);
 	c.fill();
 	return image;
+}
+
+function getGhostY(grid, x, startY, matrix, boundingIndices)
+{
+	let y = startY;
+	while (true)
+	{
+		if (y + boundingIndices.bottom >= grid.height - 1 || grid.overlaps(x, y + 1, matrix)) return y;
+		else y++;
+	}
+}
+
+function drawGhost(ctx, topX, topY, matrix, cellSize)
+{
+	ctx.beginPath();
+	for (let j = 0; j < matrix.length; j++)
+	{
+		const row = matrix[j];
+		for (let i = 0; i < row.length; i++)
+		{
+			if (row[i])
+			{
+				const x = (i + topX) * cellSize;
+				const y = (j + topY) * cellSize;
+				ctx.moveTo(x, y);
+				for (const [[neighborXOffset, neighborYOffset], [drawXOffset, drawYOffset]] of [
+					[[0, -1], [cellSize, 0]],
+					[[1, 0], [cellSize, cellSize]],
+					[[0, 1], [0, cellSize]],
+					[[-1, 0], [0, 0]],
+				])
+				{
+					const neighborX = i + neighborXOffset;
+					const neighborY = j + neighborYOffset;
+					const drawX = x + drawXOffset;
+					const drawY = y + drawYOffset;
+					if (!matrix[neighborY]?.[neighborX]) ctx.lineTo(drawX, drawY);
+					else ctx.moveTo(drawX, drawY);
+				}
+			}
+		}
+	}
+	ctx.strokeStyle = 'white';
+	ctx.lineWidth = 1;
+	ctx.stroke();
 }
 
 // Used for testing out positions by filling cells in

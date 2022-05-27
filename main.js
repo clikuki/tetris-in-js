@@ -132,6 +132,7 @@ function lockTetromino()
 		scoreDisplay.textContent = `score: ${score}`;
 		const randomTetromino = Tetromino.getRandom(grid);
 		currentTetromino = nextTetromino.swap(randomTetromino);
+		currentTetromino.StartGhostPiece();
 		nextTetromino.draw();
 		if (heldTetromino)
 		{
@@ -175,6 +176,7 @@ function loop(t)
 		{
 			hasStarted = true;
 			nextTetromino.draw();
+			currentTetromino.StartGhostPiece();
 		}
 		return
 	};
@@ -255,6 +257,7 @@ function loop(t)
 					currentTetromino = nextTetromino.swap(randomTetromino);
 					nextTetromino.draw();
 				}
+				currentTetromino.StartGhostPiece();
 			}
 		}
 		else holdKeyPressed = false;

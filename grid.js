@@ -117,6 +117,21 @@ export default class Grid extends Array
 			this[j] = new Array(this.width).fill(0);
 		}
 	}
+	overlaps(x, y, matrix)
+	{
+		for (let j = 0; j < matrix.length; j++)
+		{
+			if (j + y < 0 || j + y >= this.height) continue;
+			// console.log(`j: ${j}`);
+			const row = matrix[j];
+			for (let i = 0; i < row.length; i++)
+			{
+				if (i + x < 0 || i + x >= this.width) continue;
+				// console.log(`j: ${i}`);
+				if (row[i] && this[j + y][i + x]) return true;
+			}
+		}
+	}
 }
 
 function checkIfTSpin(grid, tetromino)
