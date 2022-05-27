@@ -67,7 +67,6 @@ export default class Tetromino
 			this.kickData ? this.kickData[kickIndex].map(([x, y]) => [x * direction, y * direction]) : []
 		);
 
-		console.log(`Attempting ${direction === -1 ? 'counter' : ''}clockwise rotation`)
 		for (const [xOffset, yOffset] of kickOffsets.slice())
 		{
 			if (

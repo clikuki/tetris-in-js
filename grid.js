@@ -36,35 +36,36 @@ export default class Grid extends Array
 			}
 		}
 
-		if (hasHitTop) return 'HIT TOP';
+		if (hasHitTop) return { type: 1 };
 
-		let linesCleared = 0;
+		const linesToRemove = [];
 		for (const rowIndex of [...updatedRowIndices].sort((a, b) => b - a))
 		{
 			if (this[rowIndex].every(v => v))
 			{
-				linesCleared++;
-				this.splice(rowIndex, 1);
+				linesToRemove.push(rowIndex);
 			}
 		}
 		let score = 0;
-		if (linesCleared)
+		if (linesToRemove.length)
 		{
-			this.unshift(...new Array(this.height - this.length).fill(0).map(() => new Array(this.width).fill(0)))
 			score = 50 * ++this.combo;
-			switch (linesCleared)
+			switch (linesToRemove.length)
 			{
 				case 1:
 					this.lastClearIsTetris = false;
-					score += 100;
+					if (checkIfTSpin(this, tetromino)) score += 800;
+					else score += 100;
 					break;
 				case 2:
 					this.lastClearIsTetris = false;
-					score += 300;
+					if (checkIfTSpin(this, tetromino)) score += 1200;
+					else score += 300;
 					break;
 				case 3:
 					this.lastClearIsTetris = false;
-					score += 500;
+					if (checkIfTSpin(this, tetromino)) score += 1600;
+					else score += 500;
 					break;
 				case 4:
 					{
@@ -77,9 +78,17 @@ export default class Grid extends Array
 				default:
 					break;
 			}
+			for (const rowIndex of linesToRemove)
+			{
+				this.splice(rowIndex, 1);
+			}
+			this.unshift(...new Array(this.height - this.length).fill(0).map(() => new Array(this.width).fill(0)))
 		}
 		else this.combo = -1;
-		return score;
+		return {
+			type: 0,
+			score,
+		};
 	}
 	draw(ctx)
 	{
@@ -108,4 +117,20 @@ export default class Grid extends Array
 			this[j] = new Array(this.width).fill(0);
 		}
 	}
+}
+
+function checkIfTSpin(grid, tetromino)
+{
+	if (tetromino.type !== 'T') return;
+	if (tetromino.lastMovement !== 1) return;
+	const corners = [[0, 0], [2, 0], [0, 2], [2, 2]]
+		.filter(([xOffset, yOffset]) =>
+		{
+			const x = tetromino.topX + xOffset;
+			const y = tetromino.topY + yOffset;
+			if (x < 0 || x >= grid.width) return true;
+			return grid[y]?.[x];
+		});
+	if (corners.length < 3) return;
+	return true;
 }

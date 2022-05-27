@@ -9,6 +9,21 @@ canvas.height = grid.height * grid.cellSize;
 canvas.classList.add('game')
 document.body.append(canvas);
 
+// [
+// 	[1, 1, 0, 0, 1, 1, 1, 1, 1, 1],
+// 	[1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+// 	[1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+// 	[1, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+// 	[1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+// ].reverse().forEach((row, j) =>
+// {
+// 	row.forEach((cell, i) =>
+// 	{
+// 		if (!cell) return;
+// 		grid[grid.height - 1 - j][i] = neutralBlock;
+// 	})
+// })
+
 class TetrominoDisplay
 {
 	constructor(canvas, cellSize, startTetromino = null)
@@ -109,11 +124,11 @@ function startScreen()
 
 function lockTetromino()
 {
-	const newPoints = grid.addTetromino(currentTetromino);
-	if (typeof newPoints !== 'number') gameOver();
+	const result = grid.addTetromino(currentTetromino);
+	if (result.type) gameOver();
 	else
 	{
-		score += newPoints;
+		score += result.score;
 		scoreDisplay.textContent = `score: ${score}`;
 		const randomTetromino = Tetromino.getRandom(grid);
 		currentTetromino = nextTetromino.swap(randomTetromino);
