@@ -1,16 +1,18 @@
 export default class Tetromino
 {
-	constructor(grid, matrices, kickData, image)
+	constructor(grid, matrices, kickData, type, image)
 	{
+		this.type = type;
 		this.matrices = matrices;
 		this.kickData = kickData;
 		this.rotation = 0;
+		this.lastMovement = null; // 0 = fall, 1 = rotation, 2 = move
 		this.curMatrix = matrices[this.rotation];
 		this.image = image;
 		this.grid = grid;
 		this.topX = Math.ceil((grid.width / 2) - (this.curMatrix[0].length / 2));
 		this.topY = -this.curMatrix.length;
-		this.boundingIndices = getBoundingIndices(this.matrices);
+		this.boundingIndices = getBoundingIndices(this.matrices, type);
 		this.curBoundingIndices = this.boundingIndices[this.rotation];
 		this.isTouchingBottom = false;
 	}
@@ -45,7 +47,11 @@ export default class Tetromino
 				this.isTouchingBottom = true;
 				break;
 			}
-			else this.topY++;
+			else
+			{
+				this.lastMovement = 0;
+				this.topY++;
+			}
 		} while (hardDrop);
 	}
 	rotate(direction)
@@ -72,6 +78,7 @@ export default class Tetromino
 			) continue;
 
 			// Rotation is sucessful
+			this.lastMovement = 1;
 			this.rotation = newRotationIndex
 			this.curMatrix = newMatrix;
 			this.curBoundingIndices = newBoundingIndices;
@@ -92,6 +99,7 @@ export default class Tetromino
 			!this.checkIfOverlapsGridBlocks({ topX: newX })
 		)
 		{
+			this.lastMovement = 2;
 			this.topX = newX;
 			this.isTouchingBottom = this.checkIfBottomTouchesGround();
 		}
@@ -148,16 +156,17 @@ export default class Tetromino
 		}
 
 		const index = indicesBucket.pop();
-		const { image, matrices, kickData } = presets[index];
-		return new Tetromino(grid, matrices, kickData, image);
+		const { image, type, matrices, kickData } = presets[index];
+		return new Tetromino(grid, matrices, kickData, type, image);
 	}
 }
 
 const indicesBucket = [];
 
-function getBoundingIndices(matrices)
+const mem = {};
+function getBoundingIndices(matrices, type)
 {
-	return matrices.map(matrix =>
+	const data = mem[type] ? mem[type] : matrices.map(matrix =>
 	{
 		const horizontalCells = [];
 		for (const row of matrix)
@@ -190,6 +199,8 @@ function getBoundingIndices(matrices)
 			bottom: verticalCells.length - 1 - verticalCells.reverse().findIndex(v => v),
 		};
 	})
+	if (!mem[type]) mem[type] = data;
+	return data;
 }
 
 function getImage(color)
@@ -233,7 +244,6 @@ function getImage(color)
 // Used for testing out positions by filling cells in
 export const neutralBlock = getImage('#999');
 
-// Wall kick data for J,L,S,T,Z shapes
 const kickDataForMostTetrominos = [
 	[
 		[-1, 0],
@@ -260,9 +270,36 @@ const kickDataForMostTetrominos = [
 		[-1, -2],
 	],
 ];
+const kickDataForIShape = [
+	[
+		[-2, 0],
+		[1, 0],
+		[-2, 1],
+		[1, -2],
+	],
+	[
+		[-1, 0],
+		[2, 0],
+		[-1, -2],
+		[2, 1],
+	],
+	[
+		[2, 0],
+		[-1, 0],
+		[2, -1],
+		[-1, 2],
+	],
+	[
+		[1, 0],
+		[-2, 0],
+		[1, 2],
+		[-2, -1],
+	],
+]
 
 const presets = [
-	{	// I-Shape
+	{
+		type: 'I',
 		image: getImage('#00f0f0'),
 		matrices: [
 			[
@@ -290,34 +327,10 @@ const presets = [
 				[0, 1, 0, 0],
 			],
 		],
-		kickData: [
-			[
-				[-2, 0],
-				[1, 0],
-				[-2, 1],
-				[1, -2],
-			],
-			[
-				[-1, 0],
-				[2, 0],
-				[-1, -2],
-				[2, 1],
-			],
-			[
-				[2, 0],
-				[-1, 0],
-				[2, -1],
-				[-1, 2],
-			],
-			[
-				[1, 0],
-				[-2, 0],
-				[1, 2],
-				[-2, -1],
-			],
-		],
+		kickData: kickDataForIShape,
 	},
-	{	// J-Shape
+	{
+		type: 'J',
 		image: getImage('#0000f0'),
 		matrices: [
 			[
@@ -343,7 +356,8 @@ const presets = [
 		],
 		kickData: kickDataForMostTetrominos,
 	},
-	{	// L-Shape
+	{
+		type: 'L',
 		image: getImage('#f0a000'),
 		matrices: [
 			[
@@ -369,7 +383,8 @@ const presets = [
 		],
 		kickData: kickDataForMostTetrominos,
 	},
-	{	// O-Shape
+	{
+		type: 'O',
 		image: getImage('#f0f000'),
 		matrices: [
 			[
@@ -379,7 +394,8 @@ const presets = [
 		],
 		kickData: null,
 	},
-	{	// S-Shape
+	{
+		type: 'S',
 		image: getImage('#00f000'),
 		matrices: [
 			[
@@ -405,7 +421,8 @@ const presets = [
 		],
 		kickData: kickDataForMostTetrominos,
 	},
-	{	// T-Shape
+	{
+		type: 'T',
 		image: getImage('#a000f0'),
 		matrices: [
 			[
@@ -431,7 +448,8 @@ const presets = [
 		],
 		kickData: kickDataForMostTetrominos,
 	},
-	{	// Z-Shape
+	{
+		type: 'Z',
 		image: getImage('#f00000'),
 		matrices: [
 			[
