@@ -129,8 +129,8 @@ let lastTouchedBottom = null;
 const mainInterval = 1000 / 60;
 let mainThen = 0;
 const normalDropInterval = 1000 / 5;
-const softDropInterval = 1000 / 10;
-let softDropMode = false;
+const softDropInterval = 1000 / 30;
+let isSoftDropping = false;
 let dropThen = 0;
 let hasHardDrop = false;
 let holdKeyPressed = false;
@@ -244,15 +244,15 @@ function loop(t)
 	else
 	{
 		const dropElapsed = t - dropThen;
-		softDropMode = (inputHandler.softDrop && (softDropMode || !currentTetromino.isTouchingBottom));
-		if (dropElapsed > (softDropMode ? softDropInterval : normalDropInterval) || t === undefined)
+		isSoftDropping = (inputHandler.softDrop && (isSoftDropping || !currentTetromino.isTouchingBottom));
+		if (dropElapsed > (isSoftDropping ? softDropInterval : normalDropInterval) || t === undefined)
 		{
-			if (t !== undefined) dropThen = t - (dropElapsed % normalDropInterval);
+			if (t !== undefined) dropThen = t - (dropElapsed % (isSoftDropping ? softDropInterval : normalDropInterval));
 			if (currentTetromino?.isTouchingBottom)
 			{
 				const manualLockHeld = inputHandler.softDrop;
 				if (lastTouchedBottom === null) lastTouchedBottom = t;
-				if ((manualLockHeld && !softDropMode) || t - lastTouchedBottom > lockDelay)
+				if ((manualLockHeld && !isSoftDropping) || t - lastTouchedBottom > lockDelay)
 				{
 					lastTouchedBottom = null;
 					lockTetromino();
