@@ -1,12 +1,14 @@
 import Grid from "./grid.js";
-import InputHandler from "./inputs.js";
+import InputHandler from "./inputHandler.js";
 import Tetromino, { neutralBlock } from "./tetromino.js";
+import TetrominoDisplay from "./tetrominoDisplay.js";
+
 const canvas = document.createElement('canvas');
 const ctx = canvas.getContext('2d', { alpha: false });
 const grid = new Grid(10, 20, 30);
 canvas.width = grid.width * grid.cellSize;
 canvas.height = grid.height * grid.cellSize;
-canvas.classList.add('game')
+canvas.classList.add('game');
 document.body.append(canvas);
 
 // [
@@ -23,42 +25,6 @@ document.body.append(canvas);
 // 		grid[grid.height - 1 - j][i] = neutralBlock;
 // 	})
 // })
-
-class TetrominoDisplay
-{
-	constructor(canvas, cellSize, startTetromino = null)
-	{
-		this.canvas = canvas;
-		this.ctx = canvas.getContext('2d', { alpha: false });
-		this.tetromino = startTetromino;
-		canvas.width = cellSize * 5;
-		canvas.height = cellSize * 5;
-		this.clearCanvas();
-		if (startTetromino) startTetromino.resetPosition();
-	}
-	swap(tetromino)
-	{
-		if (tetromino) tetromino.resetPosition();
-		const tmp = this.tetromino;
-		this.tetromino = tetromino;
-		return tmp;
-	}
-	clearCanvas()
-	{
-		this.ctx.fillStyle = 'black';
-		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-	}
-	darken()
-	{
-		this.ctx.fillStyle = '#333a';
-		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-	}
-	draw()
-	{
-		this.clearCanvas();
-		if (this.tetromino) this.tetromino.draw(this.ctx, this.canvas);
-	}
-}
 
 const nextTetromino = new TetrominoDisplay(document.querySelector('.nextTetromino'), grid.cellSize, Tetromino.getRandom(grid));
 const heldTetromino = new TetrominoDisplay(document.querySelector('.holder'), grid.cellSize);
@@ -105,7 +71,7 @@ function gameOver()
 
 function startScreen()
 {
-	ctx.fillStyle = '#333333aa';
+	ctx.fillStyle = '#333a';
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 	ctx.fillStyle = 'black';
 	ctx.strokeStyle = 'white';
@@ -120,6 +86,11 @@ function startScreen()
 	ctx.font = ctx.font.replace(/\d+px/, '40px');
 	ctx.strokeText('to start', canvas.width / 2, canvas.height / 2 + 50);
 	ctx.fillText('to start', canvas.width / 2, canvas.height / 2 + 50);
+	ctx.fillStyle = '#cc0000';
+	ctx.font = ctx.font.replace(/\d+px/, '60px');
+	ctx.textBaseline = 'top';
+	ctx.fillText('TETRIS', canvas.width / 2, 10);
+	ctx.strokeText('TETRIS', canvas.width / 2, 10);
 }
 
 function lockTetromino()

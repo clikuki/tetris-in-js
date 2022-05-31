@@ -2,7 +2,6 @@ body {
 	margin: 0;
 	display: grid;
 	grid-template-areas:
-		'header 	header header'
 		'sideLeft game	 sideRight'
 		'bottom 	bottom bottom';
 	grid-template-rows: 1fr auto minmax(1fr, auto);
