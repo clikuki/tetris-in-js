@@ -32,6 +32,10 @@ heldTetromino.canSwap = true;
 
 const scoreDisplay = document.querySelector('.scoreDisplay');
 let score = 0;
+const levelDisplay = document.querySelector('.levelDisplay');
+const linesNeededToGoToNextLevel = 10;
+let currentLevelLinesCleared = 0;
+let level = 1;
 
 let currentTetromino = Tetromino.getRandom(grid);
 const inputHandler = new InputHandler(canvas);
@@ -95,7 +99,7 @@ function startScreen()
 
 function lockTetromino()
 {
-	const result = grid.addTetromino(currentTetromino);
+	const result = grid.addTetromino(currentTetromino, level);
 	if (result.type) gameOver();
 	else
 	{
@@ -109,6 +113,18 @@ function lockTetromino()
 		{
 			heldTetromino.canSwap = true;
 			heldTetromino.draw();
+		}
+		if (result.linesCleared)
+		{
+			currentLevelLinesCleared += result.linesCleared;
+			let updateLevelDisplay = false;
+			while (currentLevelLinesCleared >= linesNeededToGoToNextLevel)
+			{
+				updateLevelDisplay = true;
+				currentLevelLinesCleared -= linesNeededToGoToNextLevel;
+				level++;
+			}
+			if (updateLevelDisplay) levelDisplay.textContent = `level: ${level}`;
 		}
 	}
 }

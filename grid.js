@@ -6,14 +6,14 @@ export default class Grid extends Array
 		this.width = width;
 		this.height = height;
 		this.cellSize = cellSize;
-		this.lastClearIsTetris = false;
+		this.lastClearType = null;
 		this.combo = -1;
 		for (let j = 0; j < height; j++)
 		{
 			this[j] = new Array(width).fill(0);
 		}
 	}
-	addTetromino(tetromino)
+	addTetromino(tetromino, level)
 	{
 		let hasHitTop = false;
 		const image = tetromino.image;
@@ -49,35 +49,24 @@ export default class Grid extends Array
 		let score = 0;
 		if (linesToRemove.length)
 		{
-			score = 50 * ++this.combo;
-			switch (linesToRemove.length)
+			score = 50 * ++this.combo * level;
+			if (linesToRemove.length < 4) // single to triple
 			{
-				case 1:
-					this.lastClearIsTetris = false;
-					if (checkIfTSpin(this, tetromino)) score += 800;
-					else score += 100;
-					break;
-				case 2:
-					this.lastClearIsTetris = false;
-					if (checkIfTSpin(this, tetromino)) score += 1200;
-					else score += 300;
-					break;
-				case 3:
-					this.lastClearIsTetris = false;
-					if (checkIfTSpin(this, tetromino)) score += 1600;
-					else score += 500;
-					break;
-				case 4:
-					{
-						let pointsToAdd = 800;
-						if (this.lastClearIsTetris) pointsToAdd *= 1.5;
-						this.lastClearIsTetris = true;
-						score += pointsToAdd;
-						break;
-					}
-				default:
-					break;
+				const isTspin = checkIfTSpin(this, tetromino);
+				score += (
+					(isTspin ? 800 : 100) +
+					(isTspin ? 400 : 200) *
+					(linesToRemove.length - 1)
+				) * (this.lastClearType === 'tspin' ? 1.5 : 1) * level;
+				if (isTspin) this.lastClearType = 'tspin';
+				else this.lastClearType = null;
 			}
+			else // Tetris/quadruple
+			{
+				score += 800 * (this.lastClearType === 'tetris' ? 1.5 : 1) * level;
+				this.lastClearType = 'tetris';
+			}
+
 			for (const rowIndex of linesToRemove)
 			{
 				this.splice(rowIndex, 1);
@@ -88,6 +77,7 @@ export default class Grid extends Array
 		return {
 			type: 0,
 			score,
+			linesCleared: linesToRemove.length,
 		};
 	}
 	draw(ctx)

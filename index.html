@@ -16,6 +16,7 @@
 			<span>Next Tetromino</span>
 			<canvas class="nextTetromino"></canvas>
 			<span class="scoreDisplay">Score: 0</span>
+			<span class="levelDisplay">Level: 0</span>
 		</div>
 		<div class="bottom">
 			<h2>Controls</h2>
@@ -31,14 +32,17 @@
 			</ul>
 			<h2>Scoring system</h2>
 			<ul>
-				<li>Single - 100</li>
-				<li>Double - 300</li>
-				<li>Triple - 500</li>
-				<li>Tetris - 800</li>
-				<li>Combo - 50 * Combo count</li>
-				<li>T-spin single - 800</li>
-				<li>T-spin double - 1200</li>
-				<li>T-spin triple - 1600</li>
+				<li>Single - 100 × level</li>
+				<li>Double - 300 × level</li>
+				<li>Triple - 500 × level</li>
+				<li>Tetris - 800 × level</li>
+				<li>T-spin single - 800 × level</li>
+				<li>T-spin double - 1200 × level</li>
+				<li>T-spin triple - 1600 × level</li>
+				<li>
+					Back-to-Back Tetris/T-spin - Original added points × 1.5
+				</li>
+				<li>Combo - 50 * Combo count × level</li>
 			</ul>
 		</div>
 	</body>
