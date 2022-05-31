@@ -10,17 +10,18 @@ export default class Tetromino
 		this.curMatrix = matrices[this.rotation];
 		this.image = image;
 		this.grid = grid;
-		this.topX = Math.ceil((grid.width / 2) - (this.curMatrix[0].length / 2));
-		this.topY = -this.curMatrix.length;
 		this.boundingIndices = getBoundingIndices(this.matrices, type);
 		this.curBoundingIndices = this.boundingIndices[this.rotation];
+		this.startX = Math.ceil((grid.width / 2) - (this.curMatrix[0].length / 2));
+		this.startY = -this.curBoundingIndices.bottom;
+		this.resetPosition();
 		this.isTouchingBottom = false;
 		this.ghostY = null;
 	}
 	resetPosition()
 	{
-		this.topX = Math.ceil((this.grid.width / 2) - (this.curMatrix[0].length / 2));
-		this.topY = -this.curMatrix.length;
+		this.topX = this.startX;
+		this.topY = this.startY;
 	}
 	checkIfBottomTouchesGround()
 	{

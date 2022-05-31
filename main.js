@@ -128,8 +128,8 @@ let lastTouchedBottom = null;
 
 const mainInterval = 1000 / 60;
 let mainThen = 0;
-const normalDropInterval = 1000 / 5;
-const softDropInterval = 1000 / 30;
+const normalDropInterval = 1000 / 1;
+const softDropInterval = 1000 / 20;
 let isSoftDropping = false;
 let dropThen = 0;
 let hasHardDrop = false;
@@ -146,6 +146,8 @@ function loop(t)
 		if (inputHandler.restart)
 		{
 			hasStarted = true;
+			dropThen = t;
+			mainThen = t;
 			nextTetromino.draw();
 			currentTetromino.StartGhostPiece();
 		}
@@ -167,9 +169,9 @@ function loop(t)
 	}
 
 	const mainElapsed = t - mainThen;
-	if (mainElapsed > mainInterval || t === undefined)
+	if (mainElapsed > mainInterval)
 	{
-		if (t !== undefined) mainThen = t - (mainElapsed % mainInterval);
+		mainThen = t - (mainElapsed % mainInterval);
 		ctx.fillStyle = 'black';
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 		grid.draw(ctx);
@@ -245,9 +247,9 @@ function loop(t)
 	{
 		const dropElapsed = t - dropThen;
 		isSoftDropping = (inputHandler.softDrop && (isSoftDropping || !currentTetromino.isTouchingBottom));
-		if (dropElapsed > (isSoftDropping ? softDropInterval : normalDropInterval) || t === undefined)
+		if (dropElapsed > (isSoftDropping ? softDropInterval : normalDropInterval))
 		{
-			if (t !== undefined) dropThen = t - (dropElapsed % (isSoftDropping ? softDropInterval : normalDropInterval));
+			dropThen = t - (dropElapsed % (isSoftDropping ? softDropInterval : normalDropInterval));
 			if (currentTetromino?.isTouchingBottom)
 			{
 				const manualLockHeld = inputHandler.softDrop;
