@@ -34,7 +34,7 @@ export default class Tetromino
 			if (this.checkIfBottomTouchesGround())
 			{
 				this.isTouchingBottom = true;
-				break;
+				return;
 			}
 			else
 			{
@@ -42,6 +42,12 @@ export default class Tetromino
 				this.topY++;
 			}
 		} while (hardDrop);
+
+		if (this.checkIfBottomTouchesGround())
+		{
+			this.isTouchingBottom = true;
+			return;
+		}
 	}
 	rotate(direction)
 	{

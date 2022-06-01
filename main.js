@@ -97,6 +97,14 @@ function startScreen()
 	ctx.strokeText('TETRIS', canvas.width / 2, 10);
 }
 
+function changeToNextTetromino()
+{
+	const randomTetromino = Tetromino.getRandom(grid);
+	currentTetromino = nextTetromino.swap(randomTetromino);
+	currentTetromino.StartGhostPiece();
+	nextTetromino.draw();
+}
+
 function lockTetromino()
 {
 	const result = grid.addTetromino(currentTetromino, level);
@@ -105,10 +113,13 @@ function lockTetromino()
 	{
 		score += result.score;
 		scoreDisplay.textContent = `score: ${score}`;
-		const randomTetromino = Tetromino.getRandom(grid);
-		currentTetromino = nextTetromino.swap(randomTetromino);
-		currentTetromino.StartGhostPiece();
-		nextTetromino.draw();
+		if (normalDropInterval > 1000 / 30) changeToNextTetromino();
+		else
+		{
+			currentTetromino = null;
+			// using setTimeout instead of time + delay, not sure which is better
+			setTimeout(changeToNextTetromino, 500);
+		}
 		if (heldTetromino)
 		{
 			heldTetromino.canSwap = true;
@@ -117,16 +128,47 @@ function lockTetromino()
 		if (result.linesCleared)
 		{
 			currentLevelLinesCleared += result.linesCleared;
-			let updateLevelDisplay = false;
+			let levelHasChanged = false;
 			while (currentLevelLinesCleared >= linesNeededToGoToNextLevel)
 			{
-				updateLevelDisplay = true;
+				levelHasChanged = true;
 				currentLevelLinesCleared -= linesNeededToGoToNextLevel;
 				level++;
 			}
-			if (updateLevelDisplay) levelDisplay.textContent = `level: ${level}`;
+			if (levelHasChanged)
+			{
+				updateDropValues();
+				levelDisplay.textContent = `level: ${level}`;
+			}
 		}
 	}
+}
+
+// Changes normal and soft drop intervals and lock delay according to current level
+function updateDropValues()
+{
+
+	const lockDelaySpeeds = [[5, 1], [10, 2], [15, 5], [20, 20], [Infinity, 40]];
+	for (const [speedLevelCap, fractionOfSecond] of lockDelaySpeeds)
+	{
+		if (level < speedLevelCap)
+		{
+			console.log(speedLevelCap);
+			lockDelay = 1000 / fractionOfSecond;
+			break;
+		}
+	}
+
+	const dropSpeeds = [[5, 1], [10, 5], [15, 10], [20, 20], [25, 40], [Infinity, 60]];
+	for (const [speedLevelCap, fractionOfSecond] of dropSpeeds)
+	{
+		if (level < speedLevelCap)
+		{
+			normalDropInterval = 1000 / fractionOfSecond;
+			break;
+		}
+	}
+	softDropInterval = 1000 / 20 / level;
 }
 
 const rotateLongDelay = 1000 / 5;
@@ -139,13 +181,14 @@ const moveShortDelay = 1000 / 50;
 let lastMoved = null;
 let moveInARowCount = 0;
 
-const lockDelay = 1000 / 1;
+let lockDelay = 1000 / 1;
+let normalDropInterval = 1000 / 1;
+let softDropInterval = 1000 / 20;
+updateDropValues();
 let lastTouchedBottom = null;
 
 const mainInterval = 1000 / 60;
 let mainThen = 0;
-const normalDropInterval = 1000 / 1;
-const softDropInterval = 1000 / 20;
 let isSoftDropping = false;
 let dropThen = 0;
 let hasHardDrop = false;
@@ -259,27 +302,28 @@ function loop(t)
 		currentTetromino.fall(true);
 		lockTetromino();
 	}
-	else
+	else if (currentTetromino)
 	{
+		if (!hardDropKeyPressed) hasHardDrop = false;
+		if (currentTetromino.isTouchingBottom)
+		{
+			const manualLockHeld = inputHandler.softDrop;
+			if (lastTouchedBottom === null) lastTouchedBottom = t;
+			if ((manualLockHeld && !isSoftDropping) || t - lastTouchedBottom > lockDelay)
+			{
+				lastTouchedBottom = null;
+				lockTetromino();
+			}
+		}
+		else lastTouchedBottom = null;
+
 		const dropElapsed = t - dropThen;
 		isSoftDropping = (inputHandler.softDrop && (isSoftDropping || !currentTetromino.isTouchingBottom));
 		if (dropElapsed > (isSoftDropping ? softDropInterval : normalDropInterval))
 		{
 			dropThen = t - (dropElapsed % (isSoftDropping ? softDropInterval : normalDropInterval));
-			if (currentTetromino?.isTouchingBottom)
-			{
-				const manualLockHeld = inputHandler.softDrop;
-				if (lastTouchedBottom === null) lastTouchedBottom = t;
-				if ((manualLockHeld && !isSoftDropping) || t - lastTouchedBottom > lockDelay)
-				{
-					lastTouchedBottom = null;
-					lockTetromino();
-				}
-			}
-			else lastTouchedBottom = null;
-			if (currentTetromino) currentTetromino.fall();
+			currentTetromino.fall();
 		}
-		if (!hardDropKeyPressed) hasHardDrop = false;
 	}
 }
 startScreen();
