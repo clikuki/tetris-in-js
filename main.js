@@ -42,12 +42,13 @@ const inputHandler = new InputHandler(canvas);
 inputHandler.addActions({
 	left: 'a',
 	right: 'd',
-	rotateLeft: 'q',
-	rotateRight: 'e',
+	rotateLeft: 'k',
+	rotateRight: 'l',
 	softDrop: 's',
 	hardDrop: ' ',
 	hold: 'f',
 	restart: 'r',
+	pause: 'p',
 })
 inputHandler.setConflictingActions(['left', 'right'], 'direction');
 inputHandler.setConflictingActions(['rotateLeft', 'rotateRight'], 'rotationDirection');
@@ -73,7 +74,7 @@ function gameOver()
 	ctx.fillText('Press R to restart', canvas.width / 2, canvas.height / 2 + 48);
 }
 
-function startScreen()
+function drawStartScreen()
 {
 	ctx.fillStyle = '#333a';
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -95,6 +96,19 @@ function startScreen()
 	ctx.textBaseline = 'top';
 	ctx.fillText('TETRIS', canvas.width / 2, 10);
 	ctx.strokeText('TETRIS', canvas.width / 2, 10);
+}
+
+function drawPauseScreen()
+{
+	ctx.fillStyle = '#333a';
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+	ctx.fillStyle = 'black';
+	ctx.strokeStyle = 'white';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.font = ctx.font.replace(/\d+px/, '48px');
+	ctx.strokeText('Paused', canvas.width / 2, canvas.height / 2);
+	ctx.fillText('Paused', canvas.width / 2, canvas.height / 2);
 }
 
 function changeToNextTetromino()
@@ -153,7 +167,6 @@ function updateDropValues()
 	{
 		if (level < speedLevelCap)
 		{
-			console.log(speedLevelCap);
 			lockDelay = 1000 / fractionOfSecond;
 			break;
 		}
@@ -196,6 +209,8 @@ let holdKeyPressed = false;
 
 let isGameOver = false;
 let hasStarted = false;
+let isPaused = false;
+let pauseButtonIsDown = false;
 function loop(t)
 {
 	requestAnimationFrame(loop);
@@ -226,6 +241,18 @@ function loop(t)
 		}
 		return;
 	}
+
+	if (inputHandler.pause)
+	{
+		if (!pauseButtonIsDown)
+		{
+			pauseButtonIsDown = true;
+			isPaused = !isPaused;
+			if (isPaused) drawPauseScreen();
+		}
+	}
+	else pauseButtonIsDown = false;
+	if (isPaused) return;
 
 	const mainElapsed = t - mainThen;
 	if (mainElapsed > mainInterval)
@@ -326,5 +353,5 @@ function loop(t)
 		}
 	}
 }
-startScreen();
+drawStartScreen();
 requestAnimationFrame(loop)
