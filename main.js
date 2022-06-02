@@ -53,7 +53,7 @@ inputHandler.addActions({
 inputHandler.setConflictingActions(['left', 'right'], 'direction');
 inputHandler.setConflictingActions(['rotateLeft', 'rotateRight'], 'rotationDirection');
 
-function gameOver()
+function doGameOverStuff()
 {
 	currentTetromino = null;
 	isGameOver = true;
@@ -119,30 +119,17 @@ function changeToNextTetromino()
 	nextTetromino.draw();
 }
 
-function lockTetromino()
+function lockTetromino(t)
 {
 	const result = grid.addTetromino(currentTetromino, level);
-	if (result.type) gameOver();
-	else
+	switch (result.type)
 	{
-		score += result.score;
-		scoreDisplay.textContent = `score: ${score}`;
-		if (normalDropInterval > 1000 / 30) changeToNextTetromino();
-		else
-		{
-			currentTetromino = null;
-			// using setTimeout instead of time + delay, not sure which is better
-			setTimeout(changeToNextTetromino, 500);
-		}
-		if (heldTetromino)
-		{
-			heldTetromino.canSwap = true;
-			heldTetromino.draw();
-		}
-		if (result.linesCleared)
-		{
-			currentLevelLinesCleared += result.linesCleared;
+		case 2:
+			doGameOverStuff();
+			break;
+		case 1:
 			let levelHasChanged = false;
+			currentLevelLinesCleared += result.linesCleared;
 			while (currentLevelLinesCleared >= linesNeededToGoToNextLevel)
 			{
 				levelHasChanged = true;
@@ -154,7 +141,26 @@ function lockTetromino()
 				updateDropValues();
 				levelDisplay.textContent = `level: ${level}`;
 			}
-		}
+			score += result.score;
+			scoreDisplay.textContent = `score: ${score}`;
+			lineClearFunction = result.removeLines;
+			lineClearThen = t;
+		case 0:
+		default:
+			// Should I add ARE when drop speeds are getting fast, or keep it throughout?
+			if (normalDropInterval > 1000 / 30) changeToNextTetromino();
+			else
+			{
+				// using setTimeout instead of time + delay, not sure which is better
+				currentTetromino = null;
+				setTimeout(changeToNextTetromino, 500);
+			}
+			if (heldTetromino)
+			{
+				heldTetromino.canSwap = true;
+				heldTetromino.draw();
+			}
+			break;
 	}
 }
 
@@ -201,11 +207,15 @@ updateDropValues();
 let lastTouchedBottom = null;
 
 const mainInterval = 1000 / 60;
-let mainThen = 0;
+let mainThen;
 let isSoftDropping = false;
-let dropThen = 0;
+let dropThen;
 let hasHardDrop = false;
 let holdKeyPressed = false;
+
+let lineClearFunction = null;
+let lineClearInterval = 1000 / 50;
+let lineClearThen;
 
 let isGameOver = false;
 let hasStarted = false;
@@ -225,7 +235,7 @@ function loop(t)
 			nextTetromino.draw();
 			currentTetromino.StartGhostPiece();
 		}
-		return
+		return;
 	};
 
 	if (isGameOver)
@@ -322,12 +332,27 @@ function loop(t)
 		else holdKeyPressed = false;
 	}
 
+	if (lineClearFunction)
+	{
+		const lineClearElapsed = t - lineClearThen;
+		if (lineClearElapsed > lineClearInterval)
+		{
+			lineClearThen = t - (lineClearElapsed % lineClearInterval);
+			if (lineClearFunction())
+			{
+				lineClearFunction = null;
+				currentTetromino.StartGhostPiece();
+			}
+		}
+		if (lineClearFunction) return;
+	}
+
 	const hardDropKeyPressed = inputHandler.hardDrop;
 	if (hardDropKeyPressed && !hasHardDrop)
 	{
 		hasHardDrop = true;
 		currentTetromino.fall(true);
-		lockTetromino();
+		lockTetromino(t);
 	}
 	else if (currentTetromino)
 	{
@@ -339,7 +364,7 @@ function loop(t)
 			if ((manualLockHeld && !isSoftDropping) || t - lastTouchedBottom > lockDelay)
 			{
 				lastTouchedBottom = null;
-				lockTetromino();
+				lockTetromino(t);
 			}
 		}
 		else lastTouchedBottom = null;

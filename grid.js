@@ -36,7 +36,7 @@ export default class Grid extends Array
 			}
 		}
 
-		if (hasHitTop) return { type: 1 };
+		if (hasHitTop) return { type: 2 };
 
 		const linesToRemove = [];
 		for (const rowIndex of [...updatedRowIndices].sort((a, b) => b - a))
@@ -67,18 +67,42 @@ export default class Grid extends Array
 				this.lastClearType = 'tetris';
 			}
 
-			for (const rowIndex of linesToRemove)
-			{
-				this.splice(rowIndex, 1);
-			}
-			this.unshift(...new Array(this.height - this.length).fill(0).map(() => new Array(this.width).fill(0)))
+			return {
+				type: 1,
+				score,
+				linesCleared: linesToRemove.length,
+				removeLines: (() =>
+				{
+					let index = 0;
+					return () =>
+					{
+						if (index < this.width)
+						{
+							for (const rowIndex of linesToRemove)
+							{
+								this[rowIndex][index] = null;
+							}
+							index++;
+						}
+						else
+						{
+							for (const rowIndex of linesToRemove)
+							{
+								this.splice(rowIndex, 1);
+							}
+							this.unshift(...new Array(this.height - this.length).fill(0).map(() => new Array(this.width).fill(0)))
+							this.clearedLines = [];
+							return true;
+						}
+					}
+				})()
+			};
 		}
-		else this.combo = -1;
-		return {
-			type: 0,
-			score,
-			linesCleared: linesToRemove.length,
-		};
+		else
+		{
+			this.combo = -1;
+			return { type: 0 };
+		}
 	}
 	draw(ctx)
 	{
