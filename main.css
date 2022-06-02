@@ -36,3 +36,7 @@ h1 {
 .bottom > h2 {
 	border-bottom: 1px solid black;
 }
+.nextTetromino {
+	display: flex;
+	flex-direction: column;
+}

@@ -26,8 +26,70 @@ document.body.append(canvas);
 // 	})
 // })
 
-const nextTetromino = new TetrominoDisplay(document.querySelector('.nextTetromino'), grid.cellSize, Tetromino.getRandom(grid));
-const heldTetromino = new TetrominoDisplay(document.querySelector('.holder'), grid.cellSize);
+class NextTetromino
+{
+	static
+	{
+		this.doDraws = false;
+		this.canvasContainer = document.querySelector('.nextTetromino');
+		this.tetrominoGroups = [...this.canvasContainer.children]
+			.map(canvas =>
+			{
+				canvas.width = grid.cellSize * 5;
+				canvas.height = grid.cellSize * 5;
+				const ctx = canvas.getContext('2d', { alpha: false });
+				const tetromino = Tetromino.getRandom(grid);
+				return { canvas, ctx, tetromino };
+			})
+	}
+	static next()
+	{
+		const outGroup = this.tetrominoGroups[0];
+		const { tetromino: outTetromino, canvas, ctx } = outGroup;
+		const newTetromino = Tetromino.getRandom(grid);
+		outGroup.tetromino = newTetromino;
+		this.tetrominoGroups.push(this.tetrominoGroups.shift());
+		this.canvasContainer.append(canvas);
+		if (this.doDraws)
+		{
+			ctx.fillStyle = 'black';
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			newTetromino.draw(ctx, canvas);
+		}
+		return outTetromino;
+	}
+	static reset()
+	{
+		this.tetrominoGroups = this.tetrominoGroups
+			.map(group =>
+			{
+				const { canvas, ctx } = group;
+				const newTetromino = tetromino.getRandom();
+				if (this.doDraws)
+				{
+					ctx.fillStyle = 'black';
+					ctx.fillRect(0, 0, canvas.width, canvas.height);
+					newTetromino.draw(ctx, canvas);
+				}
+				return {
+					...group,
+					tetromino: newTetromino,
+				}
+			})
+	}
+	static startDraws()
+	{
+		this.doDraws = true;
+		this.tetrominoGroups.forEach(({ canvas, ctx, tetromino }) =>
+		{
+			ctx.fillStyle = 'black';
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			tetromino.draw(ctx, canvas);
+		})
+	}
+}
+
+const heldTetromino = new TetrominoDisplay(document.querySelector('.tetrominoHolder'), grid.cellSize);
 heldTetromino.canSwap = true;
 
 const scoreDisplay = document.querySelector('.scoreDisplay');
@@ -57,8 +119,6 @@ function doGameOverStuff()
 {
 	currentTetromino = null;
 	isGameOver = true;
-	nextTetromino.clearCanvas();
-	heldTetromino.clearCanvas();
 	ctx.fillStyle = '#333333aa';
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 	ctx.fillStyle = 'black';
@@ -113,10 +173,8 @@ function drawPauseScreen()
 
 function changeToNextTetromino()
 {
-	const randomTetromino = Tetromino.getRandom(grid);
-	currentTetromino = nextTetromino.swap(randomTetromino);
+	currentTetromino = NextTetromino.next();
 	currentTetromino.StartGhostPiece();
-	nextTetromino.draw();
 }
 
 function lockTetromino(t)
@@ -232,7 +290,7 @@ function loop(t)
 			hasStarted = true;
 			dropThen = t;
 			mainThen = t;
-			nextTetromino.draw();
+			NextTetromino.startDraws();
 			currentTetromino.StartGhostPiece();
 		}
 		return;
@@ -244,8 +302,7 @@ function loop(t)
 		{
 			grid.empty();
 			currentTetromino = Tetromino.getRandom(grid);
-			nextTetromino.swap(Tetromino.getRandom(grid));
-			nextTetromino.draw();
+			NextTetromino.reset();
 			heldTetromino.swap(null);
 			isGameOver = false;
 		}
@@ -320,12 +377,7 @@ function loop(t)
 				currentTetromino = heldTetromino.swap(currentTetromino);
 				heldTetromino.draw();
 				heldTetromino.darken();
-				if (!currentTetromino)
-				{
-					const randomTetromino = Tetromino.getRandom(grid);
-					currentTetromino = nextTetromino.swap(randomTetromino);
-					nextTetromino.draw();
-				}
+				if (!currentTetromino) currentTetromino = NextTetromino.next();
 				currentTetromino.StartGhostPiece();
 			}
 		}
