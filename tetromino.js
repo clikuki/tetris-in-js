@@ -136,35 +136,22 @@ export default class Tetromino
 	}
 	static getRandom(grid)
 	{
-		if (!indicesBucket.length)
+		if (!bucket.length)
 		{
-			const bucketSize = 2;
-			const preIndicesBucket = [];
-			for (let i = 0; i < bucketSize; i++)
+			const copy = [...terominoData];
+			while (copy.length)
 			{
-				while (preIndicesBucket.length < presets.length)
-				{
-					const index = Math.floor(Math.random() * presets.length);
-					if (preIndicesBucket.includes(index)) continue;
-					preIndicesBucket.push(index);
-				}
-			}
-			while (preIndicesBucket.length)
-			{
-				const randomIndex = Math.floor(Math.random() * preIndicesBucket.length);
-				const indexToPush = preIndicesBucket.splice(randomIndex, 1);
-				indicesBucket.push(indexToPush);
+				const index = Math.floor(Math.random() * copy.length);
+				bucket.push(...copy.splice(index, 1));
 			}
 		}
 
-		const index = indicesBucket.pop();
-		const { image, type, matrices, kickData } = presets[index];
+		const { image, type, matrices, kickData } = bucket.pop();
 		return new Tetromino(grid, matrices, kickData, type, image);
 	}
 }
 
-const indicesBucket = [];
-
+const bucket = [];
 const mem = {};
 function getBoundingIndices(matrices, type)
 {
@@ -344,7 +331,7 @@ const kickDataForIShape = [
 	],
 ]
 
-const presets = [
+const terominoData = [
 	{
 		type: 'I',
 		image: getImage('#00f0f0'),

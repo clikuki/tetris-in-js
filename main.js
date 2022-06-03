@@ -1,7 +1,6 @@
 import Grid from "./grid.js";
 import InputHandler from "./inputHandler.js";
 import Tetromino, { neutralBlock } from "./tetromino.js";
-import TetrominoDisplay from "./tetrominoDisplay.js";
 
 const canvas = document.createElement('canvas');
 const ctx = canvas.getContext('2d', { alpha: false });
@@ -50,12 +49,7 @@ class NextTetromino
 		outGroup.tetromino = newTetromino;
 		this.tetrominoGroups.push(this.tetrominoGroups.shift());
 		this.canvasContainer.append(canvas);
-		if (this.doDraws)
-		{
-			ctx.fillStyle = 'black';
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
-			newTetromino.draw(ctx, canvas);
-		}
+		if (this.doDraws) this.#draw(canvas, ctx, newTetromino);
 		return outTetromino;
 	}
 	static reset()
@@ -64,13 +58,8 @@ class NextTetromino
 			.map(group =>
 			{
 				const { canvas, ctx } = group;
-				const newTetromino = tetromino.getRandom();
-				if (this.doDraws)
-				{
-					ctx.fillStyle = 'black';
-					ctx.fillRect(0, 0, canvas.width, canvas.height);
-					newTetromino.draw(ctx, canvas);
-				}
+				const newTetromino = Tetromino.getRandom(grid);
+				if (this.doDraws) this.#draw(canvas, ctx, newTetromino);
 				return {
 					...group,
 					tetromino: newTetromino,
@@ -82,15 +71,59 @@ class NextTetromino
 		this.doDraws = true;
 		this.tetrominoGroups.forEach(({ canvas, ctx, tetromino }) =>
 		{
-			ctx.fillStyle = 'black';
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
-			tetromino.draw(ctx, canvas);
+			this.#draw(canvas, ctx, tetromino);
 		})
+	}
+	static #draw(canvas, ctx, tetromino)
+	{
+		ctx.fillStyle = 'black';
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		tetromino.draw(ctx, canvas);
 	}
 }
 
-const heldTetromino = new TetrominoDisplay(document.querySelector('.tetrominoHolder'), grid.cellSize);
-heldTetromino.canSwap = true;
+class HeldTetromino
+{
+	static
+	{
+		const canvas = this.canvas = document.querySelector('.tetrominoHolder');
+		canvas.width = grid.cellSize * 5;
+		canvas.height = grid.cellSize * 5;
+		this.ctx = canvas.getContext('2d', { alpha: false });
+		this.tetromino = null;
+		this.canSwap = true;
+	}
+	static swap(tetromino)
+	{
+		if (!this.canSwap || !tetromino) return;
+		const outTetromino = this.tetromino;
+		this.tetromino = tetromino;
+		this.canSwap = false;
+		this.#draw(true);
+		return outTetromino;
+	}
+	static release()
+	{
+		this.canSwap = true;
+		if (this.tetromino) this.#draw();
+	}
+	static empty()
+	{
+		this.tetromino = null;
+		this.#draw();
+	}
+	static #draw(darken)
+	{
+		this.ctx.fillStyle = 'black';
+		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+		if (this.tetromino) this.tetromino.draw(this.ctx, this.canvas);
+		if (darken)
+		{
+			this.ctx.fillStyle = '#333a';
+			this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+		}
+	}
+}
 
 const scoreDisplay = document.querySelector('.scoreDisplay');
 let score = 0;
@@ -213,11 +246,7 @@ function lockTetromino(t)
 				currentTetromino = null;
 				setTimeout(changeToNextTetromino, 500);
 			}
-			if (heldTetromino)
-			{
-				heldTetromino.canSwap = true;
-				heldTetromino.draw();
-			}
+			if (!HeldTetromino.canSwap) HeldTetromino.release();
 			break;
 	}
 }
@@ -303,7 +332,7 @@ function loop(t)
 			grid.empty();
 			currentTetromino = Tetromino.getRandom(grid);
 			NextTetromino.reset();
-			heldTetromino.swap(null);
+			HeldTetromino.empty();
 			isGameOver = false;
 		}
 		return;
@@ -370,13 +399,10 @@ function loop(t)
 
 		if (inputHandler.hold)
 		{
-			if (!holdKeyPressed && heldTetromino.canSwap)
+			if (!holdKeyPressed && HeldTetromino.canSwap)
 			{
 				holdKeyPressed = true;
-				heldTetromino.canSwap = false;
-				currentTetromino = heldTetromino.swap(currentTetromino);
-				heldTetromino.draw();
-				heldTetromino.darken();
+				currentTetromino = HeldTetromino.swap(currentTetromino);
 				if (!currentTetromino) currentTetromino = NextTetromino.next();
 				currentTetromino.StartGhostPiece();
 			}
