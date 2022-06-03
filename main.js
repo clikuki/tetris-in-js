@@ -231,10 +231,10 @@ function lockTetromino(t)
 			if (levelHasChanged)
 			{
 				updateDropValues();
-				levelDisplay.textContent = `level: ${level}`;
+				levelDisplay.textContent = `Level: ${level}`;
 			}
 			score += result.score;
-			scoreDisplay.textContent = `score: ${score}`;
+			scoreDisplay.textContent = `Score: ${score}`;
 			lineClearFunction = result.removeLines;
 			lineClearThen = t;
 		case 0:

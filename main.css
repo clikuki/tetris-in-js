@@ -6,8 +6,9 @@ body {
 		'bottom 	bottom bottom';
 	grid-template-rows: 1fr auto minmax(1fr, auto);
 	grid-template-columns: 1fr auto 1fr;
+	row-gap: 1rem;
 	font-family: 'Courier New', Courier, monospace;
-	background-color: #01b0b0;
+	background-color: #008989;
 }
 h1 {
 	grid-area: header;
@@ -20,8 +21,28 @@ h1 {
 .sideLeft {
 	grid-area: sideLeft;
 }
+.text {
+	background-color: #0007;
+	border-radius: 5px;
+	width: 10rem;
+	padding: 0.3rem 0;
+	text-align: center;
+	color: rgb(255, 255, 255);
+	margin-top: 5px;
+}
 .sideRight {
 	grid-area: sideRight;
+}
+.nextTetromino {
+	--borderRadius: 5px;
+}
+.nextTetromino > :first-child {
+	border-top-right-radius: var(--borderRadius);
+	border-top-left-radius: var(--borderRadius);
+}
+.nextTetromino > :last-child {
+	border-bottom-right-radius: var(--borderRadius);
+	border-bottom-left-radius: var(--borderRadius);
 }
 [class*='side'] {
 	display: flex;
@@ -32,9 +53,14 @@ h1 {
 .bottom {
 	grid-area: bottom;
 	padding: 1rem;
+	box-shadow: 0 0 10px 5px #000000b8;
+	background-color: #01b0b0;
 }
 .bottom > h2 {
 	border-bottom: 1px solid black;
+}
+.bottom > h2:first-child {
+	margin-top: 0;
 }
 .nextTetromino {
 	display: flex;
