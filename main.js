@@ -96,6 +96,7 @@ class HeldTetromino
 	static swap(tetromino)
 	{
 		if (!this.canSwap || !tetromino) return;
+		tetromino.resetPosition();
 		const outTetromino = this.tetromino;
 		this.tetromino = tetromino;
 		this.canSwap = false;
