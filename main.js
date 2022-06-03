@@ -239,14 +239,9 @@ function lockTetromino(t)
 			lineClearThen = t;
 		case 0:
 		default:
-			// Should I add ARE when drop speeds are getting fast, or keep it throughout?
-			if (normalDropInterval > 1000 / 30) changeToNextTetromino();
-			else
-			{
-				// using setTimeout instead of time + delay, not sure which is better
-				currentTetromino = null;
-				setTimeout(changeToNextTetromino, 500);
-			}
+			// using setTimeout instead of time + delay, not sure which is better
+			currentTetromino = null;
+			setTimeout(changeToNextTetromino, 500);
 			if (!HeldTetromino.canSwap) HeldTetromino.release();
 			break;
 	}
@@ -298,12 +293,14 @@ const mainInterval = 1000 / 60;
 let mainThen;
 let isSoftDropping = false;
 let dropThen;
-let hasHardDrop = false;
 let holdKeyPressed = false;
 
 let lineClearFunction = null;
 let lineClearInterval = 1000 / 50;
 let lineClearThen;
+
+const topScreenDropDelay = 1000 / 1;
+let allowDropDelay = -topScreenDropDelay;
 
 let isGameOver = false;
 let hasStarted = false;
@@ -359,17 +356,18 @@ function loop(t)
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 		grid.draw(ctx);
 
-		if (!currentTetromino) return;
-
-		currentTetromino.draw(ctx);
+		if (currentTetromino) currentTetromino.draw(ctx);
 		const moveDirection = inputHandler.direction;
 		if (moveDirection)
 		{
 			if (lastMoved === null) lastMoved = t;
 			else if (!moveInARowCount || t - lastMoved > (moveInARowCount === 1 ? moveLongDelay : moveShortDelay))
 			{
-				if (moveDirection === 'left') currentTetromino.move(-1);
-				else currentTetromino.move(1);
+				if (currentTetromino)
+				{
+					if (moveDirection === 'left') currentTetromino.move(-1);
+					else currentTetromino.move(1);
+				}
 				lastMoved = t;
 				moveInARowCount++;
 			}
@@ -386,8 +384,11 @@ function loop(t)
 			if (lastRotated === null) lastRotated = t;
 			else if (!rotatesInARowCount || t - lastRotated > (rotatesInARowCount === 1 ? rotateLongDelay : rotateShortDelay))
 			{
-				if (rotationDirection === 'rotateLeft') currentTetromino.rotate(-1);
-				else currentTetromino.rotate(1);
+				if (currentTetromino)
+				{
+					if (rotationDirection === 'rotateLeft') currentTetromino.rotate(-1);
+					else currentTetromino.rotate(1);
+				}
 				lastRotated = t;
 				rotatesInARowCount++;
 			}
@@ -398,7 +399,7 @@ function loop(t)
 			rotatesInARowCount = 0;
 		}
 
-		if (inputHandler.hold)
+		if (inputHandler.hold && currentTetromino)
 		{
 			if (!holdKeyPressed && HeldTetromino.canSwap)
 			{
@@ -420,40 +421,42 @@ function loop(t)
 			if (lineClearFunction())
 			{
 				lineClearFunction = null;
-				currentTetromino.StartGhostPiece();
+				if (currentTetromino) currentTetromino.StartGhostPiece();
 			}
 		}
 		if (lineClearFunction) return;
 	}
 
-	const hardDropKeyPressed = inputHandler.hardDrop;
-	if (hardDropKeyPressed && !hasHardDrop)
+	if (inputHandler.hardDrop && t - allowDropDelay > topScreenDropDelay)
 	{
-		hasHardDrop = true;
-		currentTetromino.fall(true);
+		allowDropDelay = t;
+		if (currentTetromino) currentTetromino.fall(true);
 		lockTetromino(t);
 	}
-	else if (currentTetromino)
+	else
 	{
-		if (!hardDropKeyPressed) hasHardDrop = false;
-		if (currentTetromino.isTouchingBottom)
+		if (currentTetromino?.isTouchingBottom)
 		{
 			const manualLockHeld = inputHandler.softDrop;
 			if (lastTouchedBottom === null) lastTouchedBottom = t;
 			if ((manualLockHeld && !isSoftDropping) || t - lastTouchedBottom > lockDelay)
 			{
+				allowDropDelay = t;
 				lastTouchedBottom = null;
 				lockTetromino(t);
 			}
 		}
 		else lastTouchedBottom = null;
 
-		const dropElapsed = t - dropThen;
-		isSoftDropping = (inputHandler.softDrop && (isSoftDropping || !currentTetromino.isTouchingBottom));
-		if (dropElapsed > (isSoftDropping ? softDropInterval : normalDropInterval))
+		if (currentTetromino)
 		{
-			dropThen = t - (dropElapsed % (isSoftDropping ? softDropInterval : normalDropInterval));
-			currentTetromino.fall();
+			const dropElapsed = t - dropThen;
+			isSoftDropping = (inputHandler.softDrop && (isSoftDropping || !currentTetromino.isTouchingBottom));
+			if (dropElapsed > ((isSoftDropping && t - allowDropDelay > topScreenDropDelay) ? softDropInterval : normalDropInterval))
+			{
+				dropThen = t - (dropElapsed % (isSoftDropping ? softDropInterval : normalDropInterval));
+				currentTetromino.fall();
+			}
 		}
 	}
 }
