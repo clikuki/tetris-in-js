@@ -1,11 +1,11 @@
 # tetris-in-js
 A simple tetris clone in Javascript.
 ### Features
-- Scoring system (___t-spins only count as doubles___)
+- Levels
+- Scoring system
 - Soft drop
 - Hard drop
 - Manual locking
-- tetromino rotate around center of piece
 - Tetromino holding
 - Next tetromino preview
-- SRS-type wall kicks
+- SRS wallkick and rotations
