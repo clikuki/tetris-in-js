@@ -1,3 +1,4 @@
+import SplashManager from "./splashText.js";
 export default class Grid extends Array
 {
 	constructor(width, height, cellSize)
@@ -46,13 +47,21 @@ export default class Grid extends Array
 				linesToRemove.push(rowIndex);
 			}
 		}
-		let score = 0;
 		if (linesToRemove.length)
 		{
-			score = 50 * ++this.combo * level;
+			let score = 0;
+			let splashText = '';
 			if (linesToRemove.length < 4) // single to triple
 			{
 				const isTspin = checkIfTSpin(this, tetromino);
+
+				if (isTspin && this.lastClearType === 'tspin') splashText += 'Back-To-Back T-Spin + ';
+				let countWord = 'Single';
+				if (linesToRemove.length === 2) countWord = 'Double';
+				else if (linesToRemove.length === 3) countWord = 'Triple';
+				if (isTspin) splashText += 'T-Spin ';
+				splashText += countWord;
+
 				score += (
 					(isTspin ? 800 : 100) +
 					(isTspin ? 400 : 200) *
@@ -63,9 +72,26 @@ export default class Grid extends Array
 			}
 			else // Tetris/quadruple
 			{
-				score += 800 * (this.lastClearType === 'tetris' ? 1.5 : 1) * level;
+				if (this.lastClearType === 'tetris') splashText += 'Back-To-Back ';
+				splashText += 'Tetris';
+
+				score += 800 * (this.lastClearType === 'tetris' ? 1.5 : 1) * level;;
 				this.lastClearType = 'tetris';
 			}
+
+			if (this.combo++ > 0)
+			{
+				const comboScore = 50 * this.combo * level;
+				splashText += ` + Combo ×${this.combo}`;
+				score += comboScore;
+			}
+
+			SplashManager.register({
+				x: (tetromino.topX + tetromino.curBoundingIndices.left + (tetromino.curBoundingIndices.right - tetromino.curBoundingIndices.left) / 2) * this.cellSize,
+				y: (tetromino.topY + tetromino.curBoundingIndices.top + (tetromino.curBoundingIndices.bottom - tetromino.curBoundingIndices.top) / 2) * this.cellSize,
+				text: splashText,
+				subtext: `+${score}`,
+			});
 
 			return {
 				type: 1,

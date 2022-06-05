@@ -1,6 +1,7 @@
 import Grid from "./grid.js";
 import InputHandler from "./inputHandler.js";
 import Tetromino, { neutralBlock } from "./tetromino.js";
+import SplashManager from "./splashText.js";
 
 const canvas = document.createElement('canvas');
 const ctx = canvas.getContext('2d', { alpha: false });
@@ -220,21 +221,8 @@ function lockTetromino(t)
 			doGameOverStuff();
 			break;
 		case 1:
-			let levelHasChanged = false;
-			currentLevelLinesCleared += result.linesCleared;
-			while (currentLevelLinesCleared >= linesNeededToGoToNextLevel)
-			{
-				levelHasChanged = true;
-				currentLevelLinesCleared -= linesNeededToGoToNextLevel;
-				level++;
-			}
-			if (levelHasChanged)
-			{
-				updateDropValues();
-				levelDisplay.textContent = `Level: ${level}`;
-			}
-			score += result.score;
-			scoreDisplay.textContent = `Score: ${score}`;
+			updateScore(result.score);
+			updateLevel(result.linesCleared);
 			lineClearFunction = result.removeLines;
 			lineClearThen = t;
 		case 0:
@@ -271,6 +259,37 @@ function updateDropValues()
 		}
 	}
 	softDropInterval = 1000 / 20 / level;
+}
+
+function updateScore(addToScore)
+{
+	score += addToScore;
+	scoreDisplay.textContent = `Score: ${score}`;
+}
+
+function updateLevel(linesCleared)
+{
+	let levelHasChanged = false;
+	currentLevelLinesCleared += linesCleared;
+	while (currentLevelLinesCleared >= linesNeededToGoToNextLevel)
+	{
+		levelHasChanged = true;
+		currentLevelLinesCleared -= linesNeededToGoToNextLevel;
+		level++;
+	}
+	if (levelHasChanged)
+	{
+		SplashManager.register({
+			x: grid.width * grid.cellSize / 2,
+			y: grid.height * grid.cellSize / 2,
+			text: 'Level Up!',
+			subtext: `Level ${level}`,
+			textSize: 30,
+			subtextSize: 25,
+		});
+		updateDropValues();
+		levelDisplay.textContent = `Level: ${level}`;
+	}
 }
 
 const rotateLongDelay = 1000 / 5;
@@ -355,8 +374,9 @@ function loop(t)
 		ctx.fillStyle = 'black';
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 		grid.draw(ctx);
-
 		if (currentTetromino) currentTetromino.draw(ctx);
+		SplashManager.draw(ctx, grid);
+		SplashManager.clearOverdue();
 		const moveDirection = inputHandler.direction;
 		if (moveDirection)
 		{
