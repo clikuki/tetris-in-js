@@ -9,6 +9,7 @@ export default class Grid extends Array
 		this.cellSize = cellSize;
 		this.lastClearType = null;
 		this.combo = -1;
+		this.topLayerY = height;
 		for (let j = 0; j < height; j++)
 		{
 			this[j] = new Array(width).fill(0);
@@ -47,6 +48,8 @@ export default class Grid extends Array
 				linesToRemove.push(rowIndex);
 			}
 		}
+
+		if (tetromino.topY + tetromino.curBoundingIndices.top < this.topLayerY) this.topLayerY = tetromino.topY + tetromino.curBoundingIndices.top;
 		if (linesToRemove.length)
 		{
 			let score = 0;
@@ -79,11 +82,18 @@ export default class Grid extends Array
 				this.lastClearType = 'tetris';
 			}
 
-			if (this.combo++ > 0)
+			if (++this.combo > 0)
 			{
 				const comboScore = 50 * this.combo * level;
 				splashText += ` + Combo ×${this.combo}`;
 				score += comboScore;
+			}
+
+			this.topLayerY += linesToRemove.length;
+			if (this.topLayerY === this.height)
+			{
+				splashText += ' + Perfect clear';
+				score += 2000 * level;
 			}
 
 			SplashManager.register({

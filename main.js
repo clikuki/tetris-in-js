@@ -12,13 +12,15 @@ canvas.classList.add('game');
 document.body.append(canvas);
 
 // [
-// 	[1, 1, 0, 0, 1, 1, 1, 1, 1, 1],
-// 	[1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+// 	[0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
 // 	[1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-// 	[1, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+// 	[0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+// 	[1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+// 	[0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
 // 	[1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
 // ].reverse().forEach((row, j) =>
 // {
+// 	grid.topLayerY--;
 // 	row.forEach((cell, i) =>
 // 	{
 // 		if (!cell) return;
@@ -450,7 +452,7 @@ function loop(t)
 	if (inputHandler.hardDrop && t - allowDropDelay > topScreenDropDelay)
 	{
 		allowDropDelay = t;
-		if (currentTetromino) currentTetromino.fall(true);
+		if (currentTetromino) updateScore(currentTetromino.fall(true) * 2);
 		lockTetromino(t);
 	}
 	else
@@ -475,6 +477,7 @@ function loop(t)
 			if (dropElapsed > ((isSoftDropping && t - allowDropDelay > topScreenDropDelay) ? softDropInterval : normalDropInterval))
 			{
 				dropThen = t - (dropElapsed % (isSoftDropping ? softDropInterval : normalDropInterval));
+				if (isSoftDropping && !currentTetromino.isTouchingBottom) updateScore(1);
 				currentTetromino.fall();
 			}
 		}

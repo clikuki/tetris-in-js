@@ -29,25 +29,24 @@ export default class Tetromino
 	}
 	fall(hardDrop)
 	{
+		let distFromGround = 0;
 		do
 		{
 			if (this.checkIfBottomTouchesGround())
 			{
 				this.isTouchingBottom = true;
+				if (hardDrop) return distFromGround;
 				return;
 			}
 			else
 			{
 				this.lastMovement = 0;
 				this.topY++;
+				distFromGround++;
 			}
 		} while (hardDrop);
 
-		if (this.checkIfBottomTouchesGround())
-		{
-			this.isTouchingBottom = true;
-			return;
-		}
+		if (this.checkIfBottomTouchesGround()) this.isTouchingBottom = true;
 	}
 	rotate(direction)
 	{
