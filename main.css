@@ -1,4 +1,5 @@
 body {
+	--borderRadius: 5px;
 	margin: 0;
 	display: grid;
 	grid-template-areas:
@@ -33,13 +34,14 @@ h1 {
 .sideRight {
 	grid-area: sideRight;
 }
-.nextTetromino {
-	--borderRadius: 5px;
-}
+.tetrominoHolder,
+.game,
 .nextTetromino > :first-child {
 	border-top-right-radius: var(--borderRadius);
 	border-top-left-radius: var(--borderRadius);
 }
+.tetrominoHolder,
+.game,
 .nextTetromino > :last-child {
 	border-bottom-right-radius: var(--borderRadius);
 	border-bottom-left-radius: var(--borderRadius);
