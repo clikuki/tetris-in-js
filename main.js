@@ -320,7 +320,7 @@ let lineClearFunction = null;
 let lineClearInterval = 1000 / 50;
 let lineClearThen;
 
-const topScreenDropDelay = 1000 / 1;
+const topScreenDropDelay = 1000 / 2;
 let allowDropDelay = -topScreenDropDelay;
 
 let isGameOver = false;
@@ -353,6 +353,11 @@ function loop(t)
 			NextTetromino.reset();
 			HeldTetromino.empty();
 			isGameOver = false;
+			currentLevelLinesCleared = 0;
+			level = 1;
+			score = 0;
+			updateLevel(0);
+			updateScore(0);
 		}
 		return;
 	}
@@ -449,10 +454,10 @@ function loop(t)
 		if (lineClearFunction) return;
 	}
 
-	if (inputHandler.hardDrop && t - allowDropDelay > topScreenDropDelay)
+	if (currentTetromino && inputHandler.hardDrop && t - allowDropDelay > topScreenDropDelay)
 	{
 		allowDropDelay = t;
-		if (currentTetromino) updateScore(currentTetromino.fall(true) * 2);
+		updateScore(currentTetromino.fall(true) * 2);
 		lockTetromino(t);
 	}
 	else
